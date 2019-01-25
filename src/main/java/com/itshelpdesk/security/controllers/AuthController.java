@@ -38,7 +38,7 @@ public class AuthController {
     @Qualifier("customUserDetailsService")
     UserDetailsService customUserDetailsService;
 
-    @PostMapping("/signin")
+    @PostMapping("/login")
     public ResponseEntity<Map<Object, Object>> signin(@RequestBody AuthenticationRequest data) {
 
         try {
