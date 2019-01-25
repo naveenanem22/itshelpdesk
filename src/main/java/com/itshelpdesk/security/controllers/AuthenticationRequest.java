@@ -1,4 +1,4 @@
-package com.itshelpdesk.controllers;
+package com.itshelpdesk.security.controllers;
 
 import java.io.Serializable;
 

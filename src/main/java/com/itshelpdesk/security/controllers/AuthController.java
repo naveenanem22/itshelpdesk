@@ -1,4 +1,4 @@
-package com.itshelpdesk.controllers;
+package com.itshelpdesk.security.controllers;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itshelpdesk.security.jwt.JwtTokenProvider;
-import com.itshelpdesk.service.CustomUserDetailsService;
+import com.itshelpdesk.security.service.CustomUserDetailsService;
 
 import java.util.HashMap;
 import java.util.Map;

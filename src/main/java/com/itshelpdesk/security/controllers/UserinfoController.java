@@ -1,4 +1,4 @@
-package com.itshelpdesk.controllers;
+package com.itshelpdesk.security.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;

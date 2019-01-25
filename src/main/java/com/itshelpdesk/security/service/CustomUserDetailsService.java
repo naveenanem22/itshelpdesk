@@ -1,4 +1,4 @@
-package com.itshelpdesk.service;
+package com.itshelpdesk.security.service;
 
 import java.util.ArrayList;
 import java.util.List;
