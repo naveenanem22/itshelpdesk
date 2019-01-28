@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
@@ -30,22 +32,38 @@ import com.itshelpdesk.model.TicketHistory;
 public class TicketController {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-	
+
 	@Autowired
 	private HttpServletRequest context;
 
 	@PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> updateTicket() {		
+	public ResponseEntity<Object> updateTicket() {
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails) {		
+	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam("ticketTitle") String title,
+			@RequestParam(value = "file1", required = false) MultipartFile file1,
+			@RequestParam(value = "file2", required = false) MultipartFile file2,
+			@RequestParam(value = "file3", required = false) MultipartFile file3) {
+		LOGGER.debug(title);
+		if (file1 != null)
+			LOGGER.debug(file1.getOriginalFilename());
+		if (file2 != null)
+			LOGGER.debug(file2.getOriginalFilename());
+		if (file3 != null)
+			LOGGER.debug(file3.getOriginalFilename());
+		
+		/*
+		 * LOGGER.debug(("Number of attachments: "+attachments.length));
+		 * LOGGER.debug("ticketTitle: "+title);
+		 */
 		return ResponseEntity.created(null).build();
 	}
 
 	@GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails) {		
+	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails) {
 		TicketHistory t1h1 = new TicketHistory();
 		t1h1.setAuthorName("Naveen Kumar Anem");
 		t1h1.setComment("Internet not working.");

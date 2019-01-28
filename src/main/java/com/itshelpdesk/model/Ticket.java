@@ -17,6 +17,9 @@ public class Ticket {
 	@JsonProperty("title")
 	private String title;
 
+	@JsonProperty("description")
+	private String description;
+
 	@JsonProperty("department")
 	private String department;
 
@@ -53,6 +56,14 @@ public class Ticket {
 
 	public Ticket() {
 
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getType() {
