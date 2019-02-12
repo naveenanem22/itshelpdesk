@@ -1,0 +1,161 @@
+package com.itshelpdesk.dao;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.itshelpdesk.model.Ticket;
+import com.itshelpdesk.model.TicketHistory;
+import com.pc.model.Department;
+
+@Repository(value = "ticketDaoImpl")
+public class TicketDaoImpl implements TicketDao {
+
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
+	@Autowired
+	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;	
+	
+
+	@Override
+	public Ticket getTicket(int id, int userId) {
+		LOGGER.debug("Fetching ticket with id:{} for the userId: {}", id, userId);
+		
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT ticket.*, department.dept_name, ");
+		sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
+		sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+		sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+		
+		sql.append("WHERE tkt_id = :tkt_id && u_id =:u_id");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_id", id);
+		paramMap.put("u_id", userId);
+
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketDetailsRowMapper());
+		
+		//Fetching the tickethitory
+		List<TicketHistory> ticketHistoryList = getTicketHistory(id);
+		
+		//Attaching tickethistory to ticket
+		tickets.get(0).setTicketHistoryList(ticketHistoryList);
+
+		return tickets.get(0);
+	}
+
+	public List<TicketHistory> getTicketHistory(int ticketId) {
+		LOGGER.debug("Fetching tickethistory for ticket with id:{}", ticketId);
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT ticketconversation.*, user.u_username FROM ticketconversation ");
+		sql.append("INNER JOIN ticket ON tktconv_tkt_id = tkt_id ");
+		sql.append("INNER JOIN user ON tktconv_author = u_id ");
+		sql.append("WHERE tkt_id =:tkt_id");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_id", ticketId);
+
+		List<TicketHistory> ticketHistoryList = namedParameterJdbcTemplate.query(sql.toString(), paramMap,
+				new TicketHistoryRowMapper());
+		return ticketHistoryList;
+	}
+
+	@Override
+	public List<Ticket> getTickets(String userName) {
+		LOGGER.debug("Fetching tickets for the user with username: " + userName);
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name FROM ticket ");
+		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("WHERE user.u_username =:u_username");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("u_username", userName);
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		LOGGER.debug("Tickets fetched: " + tickets.toString());
+		return tickets;
+	}
+
+	@Override
+	public boolean updateTicket(Ticket ticket, int userId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean deleteTicket(int ticketId, int userId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	private static class TicketDetailsRowMapper implements RowMapper<Ticket>{
+
+		@Override
+		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Ticket ticket = new Ticket();
+			Department department = new Department();
+			department.setId(rs.getInt("tkt_dept_id"));			
+			ticket.setCreatedDate(rs.getTimestamp("tkt_created_date").toLocalDateTime());
+			ticket.setDepartment(department);
+			ticket.setDescription(rs.getString("tkt_description"));
+			ticket.setId(rs.getInt("tkt_id"));
+			ticket.setPriority(rs.getString("pty_name"));
+			ticket.setServiceCategory(rs.getString("svctype_name"));
+			ticket.setStatus(rs.getString("sts_name"));
+			ticket.setTitle(rs.getString("tkt_title"));
+			ticket.setType(rs.getString("tkttype_name"));
+			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
+			
+			return ticket;
+		}
+		
+	
+	}
+
+	private static class TicketsRowMapper implements RowMapper<Ticket> {
+
+		@Override
+		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Ticket ticket = new Ticket();
+			ticket.setId(rs.getInt("tkt_id"));
+			ticket.setStatus(rs.getString("sts_name"));
+			ticket.setTitle(rs.getString("tkt_title"));
+			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
+			return ticket;
+		}
+
+	}
+
+	private static class TicketHistoryRowMapper implements RowMapper<TicketHistory> {
+
+		@Override
+		public TicketHistory mapRow(ResultSet rs, int rowNum) throws SQLException {
+			TicketHistory ticketHistoryList = new TicketHistory();
+			ticketHistoryList.setAuthorName(rs.getString("u_username"));
+			ticketHistoryList.setComment(rs.getString("tktconv_message"));
+			ticketHistoryList.setCommentedDate(rs.getTimestamp("tktconv_commented_on").toLocalDateTime());
+			ticketHistoryList.setId(rs.getInt("tktconv_id"));
+
+			return ticketHistoryList;
+		}
+
+	}
+
+}

@@ -10,8 +10,10 @@ import com.pc.serializers.JsonDateSerializer;
 
 public class TicketHistory {
 
+	@JsonProperty("id")
 	private int id;
 
+	@JsonProperty("authorName")
 	private String authorName;
 
 	@JsonProperty(value = "commentedOn")
@@ -19,10 +21,11 @@ public class TicketHistory {
 	@JsonDeserialize(using = JsonDateDeserializer.class)
 	private LocalDateTime commentedDate;
 
+	@JsonProperty("comment")
 	private String comment;
-	
+
 	public TicketHistory() {
-		
+
 	}
 
 	public int getId() {
@@ -56,9 +59,11 @@ public class TicketHistory {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-	
-	
-	
-	
+
+	@Override
+	public String toString() {
+		return "TicketHistory [id=" + id + ", authorName=" + authorName + ", commentedDate=" + commentedDate
+				+ ", comment=" + comment + "]";
+	}
 
 }

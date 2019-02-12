@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.pc.deserializers.JsonDateDeserializer;
+import com.pc.model.Department;
 import com.pc.serializers.JsonDateSerializer;
 
 public class Ticket {
@@ -21,7 +22,7 @@ public class Ticket {
 	private String description;
 
 	@JsonProperty("department")
-	private String department;
+	private Department department;
 
 	@JsonProperty("priority")
 	private String priority;
@@ -58,22 +59,6 @@ public class Ticket {
 
 	}
 
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public int getId() {
 		return id;
 	}
@@ -90,11 +75,19 @@ public class Ticket {
 		this.title = title;
 	}
 
-	public String getDepartment() {
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Department getDepartment() {
 		return department;
 	}
 
-	public void setDepartment(String department) {
+	public void setDepartment(Department department) {
 		this.department = department;
 	}
 
@@ -130,6 +123,14 @@ public class Ticket {
 		this.deskNumber = deskNumber;
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
 	public String getStatus() {
 		return status;
 	}
@@ -161,5 +162,16 @@ public class Ticket {
 	public void setUpdatedDate(LocalDateTime updatedDate) {
 		this.updatedDate = updatedDate;
 	}
+
+	@Override
+	public String toString() {
+		return "Ticket [id=" + id + ", title=" + title + ", description=" + description + ", department=" + department
+				+ ", priority=" + priority + ", serviceCategory=" + serviceCategory + ", officeLocation="
+				+ officeLocation + ", deskNumber=" + deskNumber + ", type=" + type + ", status=" + status
+				+ ", ticketHistoryList=" + ticketHistoryList + ", createdDate=" + createdDate + ", updatedDate="
+				+ updatedDate + "]";
+	}
+	
+	
 
 }
