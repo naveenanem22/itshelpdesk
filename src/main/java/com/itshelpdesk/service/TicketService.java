@@ -3,6 +3,7 @@ package com.itshelpdesk.service;
 import java.util.List;
 
 import com.itshelpdesk.model.Ticket;
+import com.itshelpdesk.model.TicketHistory;
 
 public interface TicketService {
 
@@ -13,5 +14,7 @@ public interface TicketService {
 	boolean updateTicket(Ticket ticket, int userId);
 
 	boolean deleteTicket(int ticketId, int userId);
+
+	boolean createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId);
 
 }
