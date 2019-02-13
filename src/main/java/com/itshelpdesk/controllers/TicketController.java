@@ -60,6 +60,12 @@ public class TicketController {
 		ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
+		if (file1 != null)
+			LOGGER.debug(file1.getOriginalFilename());
+		if (file2 != null)
+			LOGGER.debug(file2.getOriginalFilename());
+		if (file3 != null)
+			LOGGER.debug(file3.getOriginalFilename());
 		ticketService.updateTicket(ticket, 1);
 		return ResponseEntity.noContent().build();
 	}
