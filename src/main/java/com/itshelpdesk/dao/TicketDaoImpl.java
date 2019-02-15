@@ -118,12 +118,33 @@ public class TicketDaoImpl implements TicketDao {
 
 		StringBuilder sql = new StringBuilder();
 		// Update the ticket status in ticket table
-		sql.append("UPDATE ticket SET ");
-		sql.append("tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name) ");
-		sql.append("WHERE tkt_id =:tkt_id && tkt_created_by =:tkt_created_by");
+		sql.append("UPDATE ticket SET tkt_updated_date =:tkt_updated_date");
+
+		if (ticket.getStatus() != null)
+			sql.append(",tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
+		if (ticket.getDepartment() != null)
+			sql.append("tkt_dept_id =:dept_id), ");
+		if (ticket.getPriority() != null)
+			sql.append(",tkt_pty_id = (SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
+		if (ticket.getType() != null)
+			sql.append(",tkt_tkttype_id = (SELECT tkt_id FROM tickettype WHERE tkttype_name =:tkttype_name)");
+		if (ticket.getServiceCategory() != null)
+			sql.append(",tkt_svctype_id = (SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
+
+		sql.append(" WHERE tkt_id =:tkt_id && tkt_created_by =:tkt_created_by");
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("sts_name", "Closed");
+		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
+		if (ticket.getStatus() != null)
+			paramMap.put("sts_name", "Closed");
+		if (ticket.getDepartment() != null)
+			paramMap.put("dept_id", ticket.getDepartment().getId());
+		if (ticket.getPriority() != null)
+			paramMap.put("pty_name", ticket.getPriority());
+		if (ticket.getType() != null)
+			paramMap.put("tkttype_name", ticket.getType());
+		if (ticket.getServiceCategory() != null)
+			paramMap.put("svctype_name", ticket.getServiceCategory());
 		paramMap.put("tkt_id", ticket.getId());
 		paramMap.put("tkt_created_by", userId);
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);

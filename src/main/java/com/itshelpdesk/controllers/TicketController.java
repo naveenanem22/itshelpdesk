@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.itshelpdesk.service.TicketService;
+import com.pc.services.FileStorageService;
 
 @RestController(value = "ticketController")
 @RequestMapping("/v0/ticket-management/tickets")
@@ -37,6 +38,9 @@ public class TicketController {
 	@Autowired
 	@Qualifier("ticketServiceImpl")
 	private TicketService ticketService;
+	
+	@Autowired
+    private FileStorageService fileStorageService;
 
 	@PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
@@ -60,8 +64,10 @@ public class TicketController {
 		ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
-		if (file1 != null)
+		if (file1 != null) {
 			LOGGER.debug(file1.getOriginalFilename());
+			fileStorageService.storeFile(file1);
+		}
 		if (file2 != null)
 			LOGGER.debug(file2.getOriginalFilename());
 		if (file3 != null)
