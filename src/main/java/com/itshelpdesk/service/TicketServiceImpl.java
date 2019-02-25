@@ -84,8 +84,9 @@ public class TicketServiceImpl implements TicketService {
 
 			// Create List<Attachment> from fileNames
 			List<Attachment> attachments = new ArrayList<Attachment>();
-			Attachment attachment = new Attachment();
+			
 			fileNames.forEach(fileName -> {
+				Attachment attachment = new Attachment();
 				attachment.setName(fileName);
 				attachments.add(attachment);
 			});

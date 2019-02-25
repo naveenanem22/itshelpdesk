@@ -45,6 +45,7 @@ public class ItsHelpDeskAttachmentDaoImpl implements ItsHelpDeskAttachmentDao {
 
 		List<Map<String, Object>> batchValues = new ArrayList<>(attachments.size());
 		attachments.forEach(attachment -> {
+			LOGGER.debug("FileName to be logged: {}", attachment.getName());
 			batchValues.add(new MapSqlParameterSource("ihda_name", attachment.getName()).getValues());
 		});
 
@@ -54,8 +55,9 @@ public class ItsHelpDeskAttachmentDaoImpl implements ItsHelpDeskAttachmentDao {
 		List<String> fileNames = attachments.stream().map(Attachment::getName).collect(Collectors.toList());
 
 		// Retrieve the inserted row ids
-		sql.append("SELECT idha_id FROM itshelpdeskattachment WHERE ");
-		sql.append("ihda_name IN :ihda_name");
+		sql = new StringBuilder();
+		sql.append("SELECT ihda_id FROM itshelpdeskattachment WHERE ");
+		sql.append("ihda_name IN(:ihda_name)");
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("ihda_name", fileNames);
@@ -64,6 +66,7 @@ public class ItsHelpDeskAttachmentDaoImpl implements ItsHelpDeskAttachmentDao {
 				new AttachmentIdRowMapper());
 
 		return attachmentIds;
+		
 	}
 
 	private static class AttachmentIdRowMapper implements RowMapper<Integer> {
