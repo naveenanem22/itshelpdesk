@@ -1,13 +1,18 @@
 package com.itshelpdesk.controllers;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,20 +46,52 @@ public class TicketController {
 	
 	@Autowired
     private FileStorageService fileStorageService;
+	
+	@GetMapping("/downloadFile/{fileName:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
+        // Load file as Resource
+		LOGGER.debug("Download request received...");
+        Resource resource = fileStorageService.loadFileAsResource(fileName);
+
+        // Try to determine file's content type
+        String contentType = null;
+        try {
+            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+        } catch (IOException ex) {
+            LOGGER.info("Could not determine file type.");
+        }
+
+        // Fallback to the default content type if type could not be determined
+        if(contentType == null) {
+            contentType = "application/octet-stream";
+        }
+        
+        LOGGER.debug("contentType: {}", contentType);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
 
 	@PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
-			@PathVariable("id") int ticketId, @RequestPart(value = "comment", required = true) String comment,
+			@PathVariable(value = "id", required = true) int ticketId, @RequestPart(value = "comment", required = true) String comment,
 			@RequestPart(value = "commentedOn", required = true) String commentedOn,
 			@RequestPart(value = "file1", required = false) MultipartFile file1,
 			@RequestPart(value = "file2", required = false) MultipartFile file2,
 			@RequestPart(value = "file3", required = false) MultipartFile file3,
-			@RequestPart("status") String status) {
+			@RequestPart(value = "status", required = false) String status) {
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		if(file1 != null) files.add(file1);
+		if(file2 != null) files.add(file2);
+		if(file3 != null) files.add(file3);
 
 		TicketHistory ticketHistory = new TicketHistory();
 		ticketHistory.setAuthorName(userDetails.getUsername());
 		ticketHistory.setComment(comment);
 		ticketHistory.setCommentedDate(LocalDateTime.now());
+		ticketHistory.setFiles(files);
 
 		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
 		ticketHistoryList.add(ticketHistory);
@@ -64,14 +101,25 @@ public class TicketController {
 		ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
-		if (file1 != null) {
+		
+		
+		/*if (file1 != null) {
 			LOGGER.debug(file1.getOriginalFilename());
 			fileStorageService.storeFile(file1);
 		}
-		if (file2 != null)
+		if (file2 != null) {
 			LOGGER.debug(file2.getOriginalFilename());
-		if (file3 != null)
+			fileStorageService.storeFile(file2);
+		}
+			
+		if (file3 != null) {
 			LOGGER.debug(file3.getOriginalFilename());
+			fileStorageService.storeFile(file3);
+		}*/
+		
+		
+		
+			
 		ticketService.updateTicket(ticket, 1);
 		return ResponseEntity.noContent().build();
 	}

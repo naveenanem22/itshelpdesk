@@ -2,6 +2,7 @@ package com.itshelpdesk.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +13,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.pc.custom.exceptions.InternalServerException;
 import com.pc.custom.exceptions.RecordNotFoundException;
+import com.pc.model.Attachment;
 import com.pc.model.Department;
 
 @Repository(value = "ticketDaoImpl")
@@ -77,22 +84,6 @@ public class TicketDaoImpl implements TicketDao {
 
 		else
 			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
-	}
-
-	public List<TicketHistory> getTicketHistory(int ticketId) {
-		LOGGER.debug("Fetching tickethistory for ticket with id:{}", ticketId);
-		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT ticketconversation.*, user.u_username FROM ticketconversation ");
-		sql.append("INNER JOIN ticket ON tktconv_tkt_id = tkt_id ");
-		sql.append("INNER JOIN user ON tktconv_author = u_id ");
-		sql.append("WHERE tkt_id =:tkt_id");
-
-		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("tkt_id", ticketId);
-
-		List<TicketHistory> ticketHistoryList = namedParameterJdbcTemplate.query(sql.toString(), paramMap,
-				new TicketHistoryRowMapper());
-		return ticketHistoryList;
 	}
 
 	@Override
@@ -155,10 +146,58 @@ public class TicketDaoImpl implements TicketDao {
 		return false;
 	}
 
-	public boolean createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId) {
+	@Override
+	public boolean deleteTicket(int ticketId, int userId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	/*********** CRUD operations for tickethistory table *******/
+	public List<TicketHistory> getTicketHistory(int ticketId) {
+		LOGGER.debug("Fetching tickethistory for ticket with id:{}", ticketId);
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT ticketconversation.*, user.u_username FROM ticketconversation ");
+		sql.append("INNER JOIN ticket ON tktconv_tkt_id = tkt_id ");
+		sql.append("INNER JOIN user ON tktconv_author = u_id ");
+		sql.append("WHERE tkt_id =:tkt_id");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_id", ticketId);
+
+		List<TicketHistory> ticketHistoryList = namedParameterJdbcTemplate.query(sql.toString(), paramMap,
+				new TicketHistoryRowMapper());
+
+		// Fetching & Attachments ticket-hitory attachments
+		ticketHistoryList.forEach(ticketHistoryItem -> {
+			Attachment attachment1 = new Attachment();
+			attachment1.setId(1);
+			attachment1.setFileType("txt");
+			attachment1.setName("123198_getAlertPackageResponse");
+			attachment1.setSize(123000);
+			attachment1.setDownloadUri("http://localhost:8080/filestorage/123198_getAlertPackageResponse.txt");
+
+			Attachment attachment2 = new Attachment();
+			attachment2.setId(2);
+			attachment2.setFileType("doc");
+			attachment2.setName("NetworkteamConsent");
+			attachment2.setSize(456000);
+			attachment2.setDownloadUri("http://localhost:8080/filestorage/123198_getAlertPackageResponse.txt");
+			List<Attachment> attachments = new ArrayList<Attachment>();
+			attachments.add(attachment1);
+			attachments.add(attachment2);
+			ticketHistoryItem.setAttachments(attachments);
+		});
+
+		return ticketHistoryList;
+	}
+
+	public int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId) {
 		LOGGER.debug("Creating ticket-history record: {} for the given ticket with id: {} by user with id: {}",
 				ticketHistory, ticketId, userId);
 		int numberOfRowsAffected;
+		KeyHolder ticketHistoryKey = new GeneratedKeyHolder();
+		String[] keyColumnNames = new String[1];
+		keyColumnNames[0] = "tktconv_id";
 		StringBuilder sql = new StringBuilder();
 		sql.append("INSERT INTO ticketconversation ");
 		sql.append("(");
@@ -169,25 +208,21 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append(":tktconv_tkt_id, :tktconv_author, :tktconv_message, :tktconv_commented_on");
 		sql.append(")");
 
-		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("tktconv_tkt_id", ticketId);
-		paramMap.put("tktconv_author", userId);
-		paramMap.put("tktconv_message", ticketHistory.getComment());
-		paramMap.put("tktconv_commented_on", ticketHistory.getCommentedDate());
+		SqlParameterSource paramSource = new MapSqlParameterSource().addValue("tktconv_tkt_id", ticketId)
+				.addValue("tktconv_author", userId).addValue("tktconv_message", ticketHistory.getComment())
+				.addValue("tktconv_commented_on", ticketHistory.getCommentedDate());
 
-		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
+		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramSource, ticketHistoryKey,
+				keyColumnNames);
 
 		if (numberOfRowsAffected == 1)
-			return true;
+			return ticketHistoryKey.getKey().intValue();
 
-		return false;
+		else
+			throw new InternalServerException("Unexpected error occured while creating tickethistory record");
 	}
 
-	@Override
-	public boolean deleteTicket(int ticketId, int userId) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	/* Row Mappers */
 
 	private static class TicketDetailsRowMapper implements RowMapper<Ticket> {
 

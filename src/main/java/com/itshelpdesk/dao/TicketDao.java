@@ -15,6 +15,7 @@ public interface TicketDao {
 
 	boolean deleteTicket(int ticketId, int userId);
 
-	boolean createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId);
+	int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId);
+	
 
 }
