@@ -2,6 +2,9 @@ package com.itshelpdesk.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +108,10 @@ public class TicketDaoImpl implements TicketDao {
 	@Override
 	public boolean updateTicket(Ticket ticket, int userId) {
 		int numberOfRowsAffected;
+		
+		//Set auditlogging fields data
+		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
+		
 		LOGGER.debug("Updating ticket with id: {} for the user with id: {}", ticket.getId(), userId);
 
 		StringBuilder sql = new StringBuilder();
