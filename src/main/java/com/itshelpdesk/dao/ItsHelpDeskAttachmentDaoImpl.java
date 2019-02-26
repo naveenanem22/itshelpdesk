@@ -22,7 +22,7 @@ import com.pc.model.Attachment;
 @Repository(value = "itsHelpDeskAttachmentDaoImpl")
 public class ItsHelpDeskAttachmentDaoImpl implements ItsHelpDeskAttachmentDao {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = LoggerFactory.getLogger(ItsHelpDeskAttachmentDaoImpl.class);
 
 	@Autowired
 	private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -66,7 +66,40 @@ public class ItsHelpDeskAttachmentDaoImpl implements ItsHelpDeskAttachmentDao {
 				new AttachmentIdRowMapper());
 
 		return attachmentIds;
-		
+
+	}
+
+	@Override
+	public List<Attachment> getAttachmentsByTicketHistory(int ticketHistoryId) {
+		StringBuilder sql = new StringBuilder();
+		LOGGER.debug("Fetching attachment-records for the given tickethistory with id: {}", ticketHistoryId);
+
+		sql.append("SELECT * FROM itshelpdeskattachment ");
+		sql.append("INNER JOIN tktconvattachment ON ihda_id = tca_ihda_id ");
+		sql.append("WHERE tca_tktconv_id = :tca_tktconv_id");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tca_tktconv_id", ticketHistoryId);
+
+		List<Attachment> attachments = namedParameterJdbcTemplate.query(sql.toString(), paramMap,
+				new AttachmentRowMapper());
+
+		return attachments;
+	}
+
+	private static class AttachmentRowMapper implements RowMapper<Attachment> {
+
+		@Override
+		public Attachment mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Attachment attachment = new Attachment();
+			attachment.setName(rs.getString("ihda_name"));
+			attachment.setId(rs.getInt("ihda_id"));
+			attachment.setSize(123000);
+			attachment.setFileType(attachment.getFileType());
+			attachment.setDownloadUri("http://localhost:8080/filestorage/" + attachment.getName());
+			return attachment;
+		}
+
 	}
 
 	private static class AttachmentIdRowMapper implements RowMapper<Integer> {

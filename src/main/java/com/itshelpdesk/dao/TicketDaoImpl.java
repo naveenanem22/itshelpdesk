@@ -13,6 +13,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -41,6 +42,10 @@ public class TicketDaoImpl implements TicketDao {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	@Qualifier("itsHelpDeskAttachmentDaoImpl")
+	private ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
 
 	@Override
 	public Ticket getTicket(int id, int userId) {
@@ -108,10 +113,10 @@ public class TicketDaoImpl implements TicketDao {
 	@Override
 	public boolean updateTicket(Ticket ticket, int userId) {
 		int numberOfRowsAffected;
-		
-		//Set auditlogging fields data
+
+		// Set auditlogging fields data
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
-		
+
 		LOGGER.debug("Updating ticket with id: {} for the user with id: {}", ticket.getId(), userId);
 
 		StringBuilder sql = new StringBuilder();
@@ -176,22 +181,25 @@ public class TicketDaoImpl implements TicketDao {
 
 		// Fetching & Attachments ticket-hitory attachments
 		ticketHistoryList.forEach(ticketHistoryItem -> {
-			Attachment attachment1 = new Attachment();
-			attachment1.setId(1);
-			attachment1.setFileType("txt");
-			attachment1.setName("123198_getAlertPackageResponse");
-			attachment1.setSize(123000);
-			attachment1.setDownloadUri("http://localhost:8080/filestorage/123198_getAlertPackageResponse.txt");
-
-			Attachment attachment2 = new Attachment();
-			attachment2.setId(2);
-			attachment2.setFileType("doc");
-			attachment2.setName("NetworkteamConsent");
-			attachment2.setSize(456000);
-			attachment2.setDownloadUri("http://localhost:8080/filestorage/123198_getAlertPackageResponse.txt");
+			LOGGER.debug("Fetching attachment(s) for ticket-history with id: {}", ticketHistoryItem.getId());
 			List<Attachment> attachments = new ArrayList<Attachment>();
-			attachments.add(attachment1);
-			attachments.add(attachment2);
+			attachments = itsHelpDeskAttachmentDao.getAttachmentsByTicketHistory(ticketHistoryItem.getId());
+			LOGGER.debug("Attachment Count: {}", attachments.size());
+
+			/*
+			 * Attachment attachment1 = new Attachment(); attachment1.setId(1);
+			 * attachment1.setFileType("txt");
+			 * attachment1.setName("123198_getAlertPackageResponse");
+			 * attachment1.setSize(123000); attachment1.setDownloadUri(
+			 * "http://localhost:8080/filestorage/123198_getAlertPackageResponse.txt");
+			 * 
+			 * Attachment attachment2 = new Attachment(); attachment2.setId(2);
+			 * attachment2.setFileType("doc"); attachment2.setName("NetworkteamConsent");
+			 * attachment2.setSize(456000); attachment2.setDownloadUri(
+			 * "http://localhost:8080/filestorage/123198_getAlertPackageResponse.txt");
+			 * 
+			 * attachments.add(attachment1); attachments.add(attachment2);
+			 */
 			ticketHistoryItem.setAttachments(attachments);
 		});
 

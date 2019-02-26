@@ -41,6 +41,7 @@ public class TicketServiceImpl implements TicketService {
 	ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
 
 	@Override
+	@Transactional(readOnly = true)
 	public Ticket getTicket(int ticketId, int userId) {
 		return ticketDao.getTicket(ticketId, userId);
 	}

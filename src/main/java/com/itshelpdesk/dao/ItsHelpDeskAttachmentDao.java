@@ -8,4 +8,6 @@ public interface ItsHelpDeskAttachmentDao {
 
 	List<Integer> createAttachments(List<Attachment> attachments);
 
+	List<Attachment> getAttachmentsByTicketHistory(int ticketHistoryId);
+
 }
