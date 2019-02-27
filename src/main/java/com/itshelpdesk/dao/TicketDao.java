@@ -17,5 +17,7 @@ public interface TicketDao {
 
 	int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId);
 	
+	int createTicket(Ticket ticket);
+	
 
 }

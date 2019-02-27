@@ -94,6 +94,58 @@ public class TicketDaoImpl implements TicketDao {
 			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
 	}
 
+	public int createTicket(Ticket ticket) {
+		int numberOfRowsAffected;
+		//Setting auditfield data
+		ticket.setCreatedDate(LocalDateTime.now(ZoneOffset.UTC));
+		StringBuilder sql = new StringBuilder();
+		/*sql.append("SELECT dept_id INTO @dept_id FROM department WHERE dept_name =:dept_name ");
+		sql.append("SELECT pty_id INTO @pty_id FROM priority WHERE pty_name =:pty_name ");
+		sql.append("SELECT sts_id INTO @sts_id FROM status WHERE sts_name =:sts_name ");
+		sql.append("SELECT svctype_id INTO @svctype_id FROM servicetype WHERE svctype_name =:svctype_name ");
+		sql.append("SELECT tkttype_id INTO @tkttype_id FROM tickettype WHERE tkttype_name =:tkttype_name ");*/
+
+		sql.append("INSERT INTO ticket ");
+		sql.append("(");
+		sql.append("tkt_created_date");
+		sql.append(", tkt_title, tkt_description, tkt_dept_id, ");
+		sql.append("tkt_pty_id, tkt_tkttype_id, tkt_svctype_id,");
+		sql.append("tkt_created_by,");
+		sql.append("tkt_sts_id");
+		sql.append(")");
+		sql.append("VALUES ");
+		sql.append("(");
+		sql.append(":tkt_created_date, :tkt_title, :tkt_description");
+		sql.append(",(SELECT dept_id FROM department WHERE dept_name =:dept_name)");
+		sql.append(",(SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
+		sql.append(",(SELECT tkttype_id FROM tickettype WHERE tkttype_name =:tkttype_name)");
+		sql.append(",(SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
+		sql.append(",:tkt_created_by");
+		sql.append(",:tkt_sts_id");
+		//sql.append(",(SELECT sts_id FROM status WHERE sts_name =:sts_name)");
+		sql.append(")");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_created_date", ticket.getCreatedDate());
+		paramMap.put("tkt_title", ticket.getTitle());
+		paramMap.put("tkt_description", ticket.getDescription());
+		paramMap.put("dept_name", ticket.getDepartment().getName());
+		paramMap.put("pty_name", ticket.getPriority());
+		paramMap.put("sts_name", ticket.getStatus());
+		paramMap.put("svctype_name", ticket.getServiceCategory());
+		paramMap.put("tkttype_name", ticket.getType());
+		paramMap.put("tkt_created_by", 1);
+		paramMap.put("tkt_sts_id", 1);
+
+		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
+		
+		if (numberOfRowsAffected == 1)
+			return 1;
+		else
+			throw new InternalServerException("Unexpected error occured while creating a ticket.");
+
+	}
+
 	@Override
 	public List<Ticket> getTickets(String userName) {
 		LOGGER.debug("Fetching tickets for the user with username: " + userName);

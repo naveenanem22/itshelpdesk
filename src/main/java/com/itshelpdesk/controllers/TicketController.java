@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.itshelpdesk.service.TicketService;
+import com.pc.model.Department;
 import com.pc.services.FileStorageService;
 
 @RestController(value = "ticketController")
@@ -43,49 +44,52 @@ public class TicketController {
 	@Autowired
 	@Qualifier("ticketServiceImpl")
 	private TicketService ticketService;
-	
+
 	@Autowired
-    private FileStorageService fileStorageService;
-	
+	private FileStorageService fileStorageService;
+
 	@GetMapping("/downloadFile/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
-        // Load file as Resource
+	public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
+		// Load file as Resource
 		LOGGER.debug("Download request received...");
-        Resource resource = fileStorageService.loadFileAsResource(fileName);
+		Resource resource = fileStorageService.loadFileAsResource(fileName);
 
-        // Try to determine file's content type
-        String contentType = null;
-        try {
-            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-        } catch (IOException ex) {
-            LOGGER.info("Could not determine file type.");
-        }
+		// Try to determine file's content type
+		String contentType = null;
+		try {
+			contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+		} catch (IOException ex) {
+			LOGGER.info("Could not determine file type.");
+		}
 
-        // Fallback to the default content type if type could not be determined
-        if(contentType == null) {
-            contentType = "application/octet-stream";
-        }
-        
-        LOGGER.debug("contentType: {}", contentType);
+		// Fallback to the default content type if type could not be determined
+		if (contentType == null) {
+			contentType = "application/octet-stream";
+		}
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
-    }
+		LOGGER.debug("contentType: {}", contentType);
+
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+				.body(resource);
+	}
 
 	@PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
-			@PathVariable(value = "id", required = true) int ticketId, @RequestPart(value = "comment", required = true) String comment,
+			@PathVariable(value = "id", required = true) int ticketId,
+			@RequestPart(value = "comment", required = true) String comment,
 			@RequestPart(value = "commentedOn", required = true) String commentedOn,
 			@RequestPart(value = "file1", required = false) MultipartFile file1,
 			@RequestPart(value = "file2", required = false) MultipartFile file2,
 			@RequestPart(value = "file3", required = false) MultipartFile file3,
 			@RequestPart(value = "status", required = false) String status) {
 		List<MultipartFile> files = new ArrayList<MultipartFile>();
-		if(file1 != null) files.add(file1);
-		if(file2 != null) files.add(file2);
-		if(file3 != null) files.add(file3);
+		if (file1 != null)
+			files.add(file1);
+		if (file2 != null)
+			files.add(file2);
+		if (file3 != null)
+			files.add(file3);
 
 		TicketHistory ticketHistory = new TicketHistory();
 		ticketHistory.setAuthorName(userDetails.getUsername());
@@ -101,42 +105,45 @@ public class TicketController {
 		ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
-		
-		
-		/*if (file1 != null) {
-			LOGGER.debug(file1.getOriginalFilename());
-			fileStorageService.storeFile(file1);
-		}
-		if (file2 != null) {
-			LOGGER.debug(file2.getOriginalFilename());
-			fileStorageService.storeFile(file2);
-		}
-			
-		if (file3 != null) {
-			LOGGER.debug(file3.getOriginalFilename());
-			fileStorageService.storeFile(file3);
-		}*/
-		
-		
-		
-			
+
+		/*
+		 * if (file1 != null) { LOGGER.debug(file1.getOriginalFilename());
+		 * fileStorageService.storeFile(file1); } if (file2 != null) {
+		 * LOGGER.debug(file2.getOriginalFilename());
+		 * fileStorageService.storeFile(file2); }
+		 * 
+		 * if (file3 != null) { LOGGER.debug(file3.getOriginalFilename());
+		 * fileStorageService.storeFile(file3); }
+		 */
+
 		ticketService.updateTicket(ticket, 1);
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
-			@RequestParam("ticketTitle") String title,
+			@RequestParam("ticketTitle") String title, @RequestParam("ticketDescription") String description,
+			@RequestParam("department") String departmentName, @RequestParam("priority") String priority,
+			@RequestParam("serviceCategory") String serviceCategory,
+			@RequestParam("additionalInfo") String additionalInfo, @RequestParam("deskNumber") String deskNumber,
+			@RequestParam("officeLocation") String officeLocation, @RequestParam("serviceType") String serviceType,
 			@RequestParam(value = "file1", required = false) MultipartFile file1,
 			@RequestParam(value = "file2", required = false) MultipartFile file2,
 			@RequestParam(value = "file3", required = false) MultipartFile file3) {
-		LOGGER.debug(title);
-		if (file1 != null)
-			LOGGER.debug(file1.getOriginalFilename());
-		if (file2 != null)
-			LOGGER.debug(file2.getOriginalFilename());
-		if (file3 != null)
-			LOGGER.debug(file3.getOriginalFilename());
+		Ticket ticket = new Ticket();
+		Department department = new Department();
+		department.setName(departmentName);
+		ticket.setDescription(description);
+		ticket.setDeskNumber(deskNumber);
+		ticket.setOfficeLocation(officeLocation);
+		ticket.setPriority(priority);
+		ticket.setServiceCategory(serviceCategory);
+		ticket.setTitle(title);
+		ticket.setType(serviceType);
+		ticket.setDepartment(department);
+
+		int ticketId = ticketService.createTicket(ticket);
+		LOGGER.debug("Ticket created with id: {}", ticketId);
 
 		return ResponseEntity.created(null).build();
 	}

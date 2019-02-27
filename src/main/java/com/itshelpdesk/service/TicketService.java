@@ -6,6 +6,8 @@ import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 
 public interface TicketService {
+	
+	int createTicket(Ticket ticket);
 
 	Ticket getTicket(int ticketId, int userId);
 

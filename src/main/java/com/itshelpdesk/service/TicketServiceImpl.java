@@ -40,6 +40,12 @@ public class TicketServiceImpl implements TicketService {
 	@Qualifier("itsHelpDeskAttachmentDaoImpl")
 	ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
 
+	public int createTicket(Ticket ticket) {
+		
+		return ticketDao.createTicket(ticket);
+
+	}
+
 	@Override
 	@Transactional(readOnly = true)
 	public Ticket getTicket(int ticketId, int userId) {
@@ -85,7 +91,7 @@ public class TicketServiceImpl implements TicketService {
 
 			// Create List<Attachment> from fileNames
 			List<Attachment> attachments = new ArrayList<Attachment>();
-			
+
 			fileNames.forEach(fileName -> {
 				Attachment attachment = new Attachment();
 				attachment.setName(fileName);
