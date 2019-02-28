@@ -94,20 +94,16 @@ public class TicketDaoImpl implements TicketDao {
 			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
 	}
 
-	public int createTicket(Ticket ticket) {
+	public int createTicket(Ticket ticket, int userId) {
 		int numberOfRowsAffected;
-		//Setting auditfield data
+		// Setting audit field data
 		ticket.setCreatedDate(LocalDateTime.now(ZoneOffset.UTC));
+		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
 		StringBuilder sql = new StringBuilder();
-		/*sql.append("SELECT dept_id INTO @dept_id FROM department WHERE dept_name =:dept_name ");
-		sql.append("SELECT pty_id INTO @pty_id FROM priority WHERE pty_name =:pty_name ");
-		sql.append("SELECT sts_id INTO @sts_id FROM status WHERE sts_name =:sts_name ");
-		sql.append("SELECT svctype_id INTO @svctype_id FROM servicetype WHERE svctype_name =:svctype_name ");
-		sql.append("SELECT tkttype_id INTO @tkttype_id FROM tickettype WHERE tkttype_name =:tkttype_name ");*/
 
 		sql.append("INSERT INTO ticket ");
 		sql.append("(");
-		sql.append("tkt_created_date");
+		sql.append("tkt_updated_date, tkt_created_date");
 		sql.append(", tkt_title, tkt_description, tkt_dept_id, ");
 		sql.append("tkt_pty_id, tkt_tkttype_id, tkt_svctype_id,");
 		sql.append("tkt_created_by,");
@@ -115,17 +111,17 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append(")");
 		sql.append("VALUES ");
 		sql.append("(");
-		sql.append(":tkt_created_date, :tkt_title, :tkt_description");
+		sql.append(":tkt_updated_date, :tkt_created_date, :tkt_title, :tkt_description");
 		sql.append(",(SELECT dept_id FROM department WHERE dept_name =:dept_name)");
 		sql.append(",(SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
 		sql.append(",(SELECT tkttype_id FROM tickettype WHERE tkttype_name =:tkttype_name)");
 		sql.append(",(SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
 		sql.append(",:tkt_created_by");
-		sql.append(",:tkt_sts_id");
-		//sql.append(",(SELECT sts_id FROM status WHERE sts_name =:sts_name)");
+		sql.append(",(SELECT sts_id FROM status WHERE sts_name =:sts_name)");
 		sql.append(")");
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
 		paramMap.put("tkt_created_date", ticket.getCreatedDate());
 		paramMap.put("tkt_title", ticket.getTitle());
 		paramMap.put("tkt_description", ticket.getDescription());
@@ -134,11 +130,10 @@ public class TicketDaoImpl implements TicketDao {
 		paramMap.put("sts_name", ticket.getStatus());
 		paramMap.put("svctype_name", ticket.getServiceCategory());
 		paramMap.put("tkttype_name", ticket.getType());
-		paramMap.put("tkt_created_by", 1);
-		paramMap.put("tkt_sts_id", 1);
+		paramMap.put("tkt_created_by", userId);
 
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
-		
+
 		if (numberOfRowsAffected == 1)
 			return 1;
 		else
@@ -147,16 +142,25 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public List<Ticket> getTickets(String userName) {
+	public List<Ticket> getTickets(String userName, String status, String priority) {
 		LOGGER.debug("Fetching tickets for the user with username: " + userName);
+
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name FROM ticket ");
 		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 		sql.append("WHERE user.u_username =:u_username");
+		if (status != null && !(status.isEmpty()))
+			sql.append(" && sts_name = :sts_name");
+		if (priority != null && !(priority.isEmpty()))
+			sql.append(" && pty_name = :pty_name");
+
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("u_username", userName);
+		paramMap.put("sts_name", status);
+		paramMap.put("pty_name", priority);
 		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;

@@ -6,12 +6,12 @@ import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 
 public interface TicketService {
-	
-	int createTicket(Ticket ticket);
+
+	int createTicket(Ticket ticket, int userId);
 
 	Ticket getTicket(int ticketId, int userId);
 
-	List<Ticket> getTicketsByUserName(String userName);
+	List<Ticket> getTicketsByUserName(String userName, String status, String priority);
 
 	boolean updateTicket(Ticket ticket, int userId);
 

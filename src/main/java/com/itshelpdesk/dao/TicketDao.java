@@ -9,15 +9,14 @@ public interface TicketDao {
 
 	Ticket getTicket(int id, int userId);
 
-	List<Ticket> getTickets(String userName);
+	List<Ticket> getTickets(String userName, String status, String priority);
 
 	boolean updateTicket(Ticket ticket, int userId);
 
 	boolean deleteTicket(int ticketId, int userId);
 
 	int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId);
-	
-	int createTicket(Ticket ticket);
-	
+
+	int createTicket(Ticket ticket, int userId);
 
 }

@@ -40,9 +40,9 @@ public class TicketServiceImpl implements TicketService {
 	@Qualifier("itsHelpDeskAttachmentDaoImpl")
 	ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
 
-	public int createTicket(Ticket ticket) {
-		
-		return ticketDao.createTicket(ticket);
+	public int createTicket(Ticket ticket, int userId) {
+		LOGGER.debug("Creating ticket with the details: {} by the user with id: {}", ticket, userId);
+		return ticketDao.createTicket(ticket, userId);
 
 	}
 
@@ -54,9 +54,9 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<Ticket> getTicketsByUserName(String userName) {
+	public List<Ticket> getTicketsByUserName(String userName, String status, String priority) {
 		LOGGER.debug("Fetching ticktets for the user with username: " + userName);
-		return ticketDao.getTickets(userName);
+		return ticketDao.getTickets(userName, status, priority);
 	}
 
 	@Override

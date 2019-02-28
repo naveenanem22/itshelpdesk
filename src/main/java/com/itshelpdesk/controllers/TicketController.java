@@ -106,16 +106,6 @@ public class TicketController {
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
 
-		/*
-		 * if (file1 != null) { LOGGER.debug(file1.getOriginalFilename());
-		 * fileStorageService.storeFile(file1); } if (file2 != null) {
-		 * LOGGER.debug(file2.getOriginalFilename());
-		 * fileStorageService.storeFile(file2); }
-		 * 
-		 * if (file3 != null) { LOGGER.debug(file3.getOriginalFilename());
-		 * fileStorageService.storeFile(file3); }
-		 */
-
 		ticketService.updateTicket(ticket, 1);
 		return ResponseEntity.noContent().build();
 	}
@@ -124,7 +114,7 @@ public class TicketController {
 	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("ticketTitle") String title, @RequestParam("ticketDescription") String description,
 			@RequestParam("department") String departmentName, @RequestParam("priority") String priority,
-			@RequestParam("serviceCategory") String serviceCategory,
+			@RequestParam("serviceCategory") String serviceCategory, @RequestParam("status") String status,
 			@RequestParam("additionalInfo") String additionalInfo, @RequestParam("deskNumber") String deskNumber,
 			@RequestParam("officeLocation") String officeLocation, @RequestParam("serviceType") String serviceType,
 			@RequestParam(value = "file1", required = false) MultipartFile file1,
@@ -141,8 +131,9 @@ public class TicketController {
 		ticket.setTitle(title);
 		ticket.setType(serviceType);
 		ticket.setDepartment(department);
+		ticket.setStatus(status);
 
-		int ticketId = ticketService.createTicket(ticket);
+		int ticketId = ticketService.createTicket(ticket, 1);
 		LOGGER.debug("Ticket created with id: {}", ticketId);
 
 		return ResponseEntity.created(null).build();
@@ -159,10 +150,23 @@ public class TicketController {
 	}
 
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails) {
+	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam(value = "status", required = false) String statusName,
+			@RequestParam(value = "priority", required = false) String priority) {
 		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
-		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByUserName(userDetails.getUsername()),
-				HttpStatus.OK);
+
+		// Setting empty fields for searching if they are not present in the request
+		if (statusName == null || statusName.equalsIgnoreCase("all"))
+			statusName = "";
+		else
+			LOGGER.debug("Search Criteria - status: {}", statusName);
+		if (priority == null)
+			priority = "";
+		else
+			LOGGER.debug("Search Criteria - priority: {}", priority);
+
+		return new ResponseEntity<List<Ticket>>(
+				ticketService.getTicketsByUserName(userDetails.getUsername(), statusName, priority), HttpStatus.OK);
 	}
 
 }
