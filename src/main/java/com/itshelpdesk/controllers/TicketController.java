@@ -156,11 +156,11 @@ public class TicketController {
 		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
 
 		// Setting empty fields for searching if they are not present in the request
-		if (statusName == null || statusName.equalsIgnoreCase("all"))
+		if (statusName == null || statusName.equalsIgnoreCase("all") || statusName.equalsIgnoreCase("null"))
 			statusName = "";
 		else
 			LOGGER.debug("Search Criteria - status: {}", statusName);
-		if (priority == null)
+		if (priority == null || priority.equalsIgnoreCase("null"))
 			priority = "";
 		else
 			LOGGER.debug("Search Criteria - priority: {}", priority);

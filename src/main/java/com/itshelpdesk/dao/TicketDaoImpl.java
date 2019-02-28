@@ -146,9 +146,10 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Fetching tickets for the user with username: " + userName);
 
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name FROM ticket ");
+		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
 		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
 		sql.append("WHERE user.u_username =:u_username");
 		if (status != null && !(status.isEmpty()))
 			sql.append(" && sts_name = :sts_name");
@@ -326,6 +327,7 @@ public class TicketDaoImpl implements TicketDao {
 			ticket.setId(rs.getInt("tkt_id"));
 			ticket.setStatus(rs.getString("sts_name"));
 			ticket.setTitle(rs.getString("tkt_title"));
+			ticket.setPriority(rs.getString("pty_name"));
 			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
 			return ticket;
 		}
