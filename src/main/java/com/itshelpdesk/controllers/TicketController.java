@@ -102,7 +102,8 @@ public class TicketController {
 
 		Ticket ticket = new Ticket();
 		ticket.setId(ticketId);
-		ticket.setStatus(status);
+		if (status != null)
+			ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
 

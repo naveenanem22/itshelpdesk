@@ -80,6 +80,8 @@ public class TicketDaoImpl implements TicketDao {
 			System.out.println("ticket not found exception on the way...");
 			throw new RecordNotFoundException("No Ticket with the id: " + id + " found.");
 		} else if (tickets.size() == 1) {
+			//Printing ticket details:
+			LOGGER.debug("Fetched ticket details: {}", tickets.get(0).toString());
 			// Fetching the ticket-history
 			List<TicketHistory> ticketHistoryList = getTicketHistory(id);
 
@@ -303,6 +305,7 @@ public class TicketDaoImpl implements TicketDao {
 			Ticket ticket = new Ticket();
 			Department department = new Department();
 			department.setId(rs.getInt("tkt_dept_id"));
+			department.setName(rs.getString("dept_name"));
 			ticket.setCreatedDate(rs.getTimestamp("tkt_created_date").toLocalDateTime());
 			ticket.setDepartment(department);
 			ticket.setDescription(rs.getString("tkt_description"));
