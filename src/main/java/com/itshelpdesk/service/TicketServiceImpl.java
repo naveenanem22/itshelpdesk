@@ -127,4 +127,18 @@ public class TicketServiceImpl implements TicketService {
 		return ticketDao.createTicketHistory(ticketHistory, ticketId, userId);
 	}
 
+	@Override
+	@Transactional
+	public boolean assignAndUpdateNewTickets(List<Ticket> tickets, int userId) {
+		// Assign new tickets to engineers and update status
+		LOGGER.debug("Update tickets: {} by the user: {}", tickets.toString(), userId);
+
+		// Assign tickets
+		if (ticketDao.createTicketAssignments(tickets))
+			// Update ticket status
+			ticketDao.updateMultipleTickets(tickets, userId);
+
+		return true;
+	}
+
 }

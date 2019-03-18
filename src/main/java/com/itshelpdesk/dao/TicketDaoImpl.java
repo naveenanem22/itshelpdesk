@@ -80,7 +80,7 @@ public class TicketDaoImpl implements TicketDao {
 			System.out.println("ticket not found exception on the way...");
 			throw new RecordNotFoundException("No Ticket with the id: " + id + " found.");
 		} else if (tickets.size() == 1) {
-			//Printing ticket details:
+			// Printing ticket details:
 			LOGGER.debug("Fetched ticket details: {}", tickets.get(0).toString());
 			// Fetching the ticket-history
 			List<TicketHistory> ticketHistoryList = getTicketHistory(id);
@@ -220,6 +220,55 @@ public class TicketDaoImpl implements TicketDao {
 	@Override
 	public boolean deleteTicket(int ticketId, int userId) {
 		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean updateMultipleTickets(List<Ticket> tickets, int userId) {
+		// Updating multiple tickets in ticket table
+		LOGGER.debug("Updating status of tickets: {} by the userId: {}", tickets.toString(), userId);
+		StringBuilder sql = new StringBuilder();
+		sql.append("UPDATE ticket SET tkt_status =:tkt_status WHERE tkt_id =:tkt_id");
+
+		List<Map<String, Object>> batchValues = new ArrayList<>(tickets.size());
+		tickets.forEach(ticket -> {
+			batchValues.add(new MapSqlParameterSource("tkt_id", ticket.getId())
+					.addValue("tkt_status", ticket.getStatus()).getValues());
+
+		});
+
+		namedParameterJdbcTemplate.batchUpdate(sql.toString(), batchValues.toArray(new Map[tickets.size()]));
+		return true;
+	}
+
+	/*********** CRUD operations for ticketassignment table *******/
+
+	public boolean createTicketAssignments(List<Ticket> tickets) {
+		// Insert ticketassignment records as a batch
+		LOGGER.debug("Inserting ticketassignment records");
+		StringBuilder sql = new StringBuilder();
+		sql.append("INSERT INTO ticketassignment ");
+		sql.append("(");
+		sql.append("ta_tkt_id, ta_assigned_to, ta_created_date");
+		sql.append(")");
+		sql.append("VALUES ");
+		sql.append("(");
+		sql.append(":ta_tkt_id, :ta_assigned_to, :ta_created_date");
+		sql.append(")");
+
+		List<Map<String, Object>> batchValues = new ArrayList<>(tickets.size());
+		tickets.forEach(ticket -> {
+			batchValues.add(new MapSqlParameterSource("ta_tkt_id", ticket.getId())
+					.addValue("ta_assigned_to", ticket.getAssignedTo().getId())
+					.addValue("ta_created_date", ticket.getCreatedDate()).getValues());
+
+		});
+
+		namedParameterJdbcTemplate.batchUpdate(sql.toString(), batchValues.toArray(new Map[tickets.size()]));
+		return true;
+	}
+
+	public boolean createTicketAssignment() {
 		return false;
 	}
 

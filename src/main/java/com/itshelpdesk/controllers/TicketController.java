@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,7 @@ import com.pc.services.FileStorageService;
 
 @RestController(value = "ticketController")
 @RequestMapping("/v0/ticket-management/tickets")
+@Validated
 public class TicketController {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -108,6 +110,18 @@ public class TicketController {
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
 
 		ticketService.updateTicket(ticket, 1);
+		return ResponseEntity.noContent().build();
+	}
+
+	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> updateMultipleTickets(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestBody List<Ticket> tickets) {
+		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
+
+		// TODO Fetch userId from userName
+
+		//ticketService.assignAndUpdateNewTickets(tickets, 1);
+
 		return ResponseEntity.noContent().build();
 	}
 

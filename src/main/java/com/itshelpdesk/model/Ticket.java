@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.pc.deserializers.JsonDateDeserializer;
 import com.pc.model.Department;
+import com.pc.model.User;
 import com.pc.serializers.JsonDateSerializer;
 
 public class Ticket {
@@ -42,6 +43,9 @@ public class Ticket {
 	@JsonProperty("status")
 	private String status;
 
+	@JsonProperty("assignedTo")
+	private User assignedTo;
+
 	@JsonProperty("ticketHistory")
 	private List<TicketHistory> ticketHistoryList;
 
@@ -57,6 +61,14 @@ public class Ticket {
 
 	public Ticket() {
 
+	}
+
+	public User getAssignedTo() {
+		return assignedTo;
+	}
+
+	public void setAssignedTo(User assignedTo) {
+		this.assignedTo = assignedTo;
 	}
 
 	public int getId() {
@@ -168,10 +180,8 @@ public class Ticket {
 		return "Ticket [id=" + id + ", title=" + title + ", description=" + description + ", department=" + department
 				+ ", priority=" + priority + ", serviceCategory=" + serviceCategory + ", officeLocation="
 				+ officeLocation + ", deskNumber=" + deskNumber + ", type=" + type + ", status=" + status
-				+ ", ticketHistoryList=" + ticketHistoryList + ", createdDate=" + createdDate + ", updatedDate="
-				+ updatedDate + "]";
+				+ ", assignedTo=" + assignedTo + ", ticketHistoryList=" + ticketHistoryList + ", createdDate="
+				+ createdDate + ", updatedDate=" + updatedDate + "]";
 	}
-	
-	
 
 }
