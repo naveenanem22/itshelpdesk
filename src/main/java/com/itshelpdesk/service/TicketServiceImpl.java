@@ -18,6 +18,7 @@ import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.pc.custom.exceptions.InternalServerException;
 import com.pc.model.Attachment;
+import com.pc.model.User;
 import com.pc.services.FileStorageService;
 
 @Service(value = "ticketServiceImpl")
@@ -132,6 +133,15 @@ public class TicketServiceImpl implements TicketService {
 	public boolean assignAndUpdateNewTickets(List<Ticket> tickets, int userId) {
 		// Assign new tickets to engineers and update status
 		LOGGER.debug("Update tickets: {} by the user: {}", tickets.toString(), userId);
+		
+		// TODO Fetch userId based on userName or user's firstName or lastName
+		// Update each ticket with fetched userId under assignedTo field
+		tickets.forEach(ticket -> {
+			User assignedTo = new User();
+			assignedTo.setId(2);
+			ticket.setAssignedTo(assignedTo);
+		});
+
 
 		// Assign tickets
 		if (ticketDao.createTicketAssignments(tickets))

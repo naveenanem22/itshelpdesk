@@ -228,12 +228,12 @@ public class TicketDaoImpl implements TicketDao {
 		// Updating multiple tickets in ticket table
 		LOGGER.debug("Updating status of tickets: {} by the userId: {}", tickets.toString(), userId);
 		StringBuilder sql = new StringBuilder();
-		sql.append("UPDATE ticket SET tkt_status =:tkt_status WHERE tkt_id =:tkt_id");
+		sql.append("UPDATE ticket SET tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name like :sts_name) WHERE tkt_id =:tkt_id");
 
 		List<Map<String, Object>> batchValues = new ArrayList<>(tickets.size());
 		tickets.forEach(ticket -> {
 			batchValues.add(new MapSqlParameterSource("tkt_id", ticket.getId())
-					.addValue("tkt_status", ticket.getStatus()).getValues());
+					.addValue("sts_name", ticket.getStatus()).getValues());
 
 		});
 

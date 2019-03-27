@@ -34,6 +34,7 @@ import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.itshelpdesk.service.TicketService;
 import com.pc.model.Department;
+import com.pc.model.User;
 import com.pc.services.FileStorageService;
 
 @RestController(value = "ticketController")
@@ -117,11 +118,9 @@ public class TicketController {
 	public ResponseEntity<Object> updateMultipleTickets(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestBody List<Ticket> tickets) {
 		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
-
-		// TODO Fetch userId from userName
-
-		//ticketService.assignAndUpdateNewTickets(tickets, 1);
-
+		
+		ticketService.assignAndUpdateNewTickets(tickets, 1);
+		
 		return ResponseEntity.noContent().build();
 	}
 
