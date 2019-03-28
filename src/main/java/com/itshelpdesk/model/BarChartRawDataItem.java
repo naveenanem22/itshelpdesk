@@ -1,19 +1,19 @@
 package com.itshelpdesk.model;
 
-public class BarChartRawData {
-	String month;
+public class BarChartRawDataItem {
+	Integer month;
 	String status;
 	Integer ticketCount;
 
-	public BarChartRawData() {
+	public BarChartRawDataItem() {
 
 	}
 
-	public String getMonth() {
+	public Integer getMonth() {
 		return month;
 	}
 
-	public void setMonth(String month) {
+	public void setMonth(Integer month) {
 		this.month = month;
 	}
 

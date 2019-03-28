@@ -4,7 +4,19 @@ import java.util.List;
 import java.util.Map;
 
 public class BarChart {
-	Map<String, List<Map<String, Integer>>> data;
+	private List<Map<Integer, List<Map<String, Integer>>>> data;
+	
+	public BarChart() {
+		
+	}
+
+	public List<Map<Integer, List<Map<String, Integer>>>> getData() {
+		return data;
+	}
+
+	public void setData(List<Map<Integer, List<Map<String, Integer>>>> data) {
+		this.data = data;
+	}
 	
 	
 
