@@ -18,6 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.itshelpdesk.model.BarChartDataItem;
 import com.itshelpdesk.model.BarChartRawDataItem;
 import com.pc.custom.exceptions.InternalServerException;
 
@@ -57,7 +58,7 @@ public class DashboardDaoImpl implements DashboardDao {
 	}
 
 	@Override
-	public List<Map<Integer, List<Map<String, Integer>>>> fetchTicketCountStatusAndMonthWise() {
+	public List<BarChartDataItem> fetchTicketCountStatusAndMonthWise() {
 		LOGGER.debug("Fetching ticket-count by month and status wise");
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT * FROM viewticketsbymonthandstatus");
@@ -67,7 +68,7 @@ public class DashboardDaoImpl implements DashboardDao {
 		LOGGER.debug("Fetched BarChartRawData: {}", barChartRawData.toString());
 
 		// Processing the barChartRawData to return in hierarchical map
-		List<Map<Integer, List<Map<String, Integer>>>> processedBarChartData = new ArrayList<Map<Integer, List<Map<String, Integer>>>>();
+		List<BarChartDataItem> barChartData = new ArrayList<BarChartDataItem>();
 
 		// Extracting months from barChartData into a set
 		Set<Integer> monthSet = new HashSet<Integer>();
@@ -78,6 +79,10 @@ public class DashboardDaoImpl implements DashboardDao {
 
 		// Loop through the set of months
 		monthSet.forEach(month -> {
+			// Create BarChart item for month
+			BarChartDataItem barChartDataItem = new BarChartDataItem();
+			barChartDataItem.setMonth(month);
+
 			// Extract Month-Status-TicketCount list for looping month
 			LOGGER.debug("Looping through month: {}", month.toString());
 			List<BarChartRawDataItem> barChartRawDataForGivenMonth = barChartRawData.stream()
@@ -88,27 +93,24 @@ public class DashboardDaoImpl implements DashboardDao {
 					barChartRawDataForGivenMonth.toString());
 
 			// Create List<Map<String, Integer>> for Status-TicketCount pair list from the
-			// above list
-			Map<String, Integer> statusTktCountMap = new HashMap<String, Integer>();
+			// above list			
 			List<Map<String, Integer>> statusTktCountMapList = new ArrayList<Map<String, Integer>>();
 			barChartRawDataForGivenMonth.forEach(barChartRawDataItem -> {
+				Map<String, Integer> statusTktCountMap = new HashMap<String, Integer>();
 				statusTktCountMap.put(barChartRawDataItem.getStatus(), barChartRawDataItem.getTicketCount());
 				statusTktCountMapList.add(statusTktCountMap);
 			});
-			LOGGER.debug("Created list of map of status-ticket pair {} for the given month {}", statusTktCountMapList.toString(),
-					month.toString());
+			LOGGER.debug("Created list of map of status-ticket pair {} for the given month {}",
+					statusTktCountMapList.toString(), month.toString());
 
-			// Create Map<Month, List<Status, TicketCount>>
-			Map<Integer, List<Map<String, Integer>>> monthStatusTktCountMap = new HashMap<Integer, List<Map<String, Integer>>>();
-			monthStatusTktCountMap.put(month, statusTktCountMapList);
-			LOGGER.debug("Created map of Month, Statu-Ticket: {}", monthStatusTktCountMap.toString());
-
-			processedBarChartData.add(monthStatusTktCountMap);
+			barChartDataItem.setDataPoints(statusTktCountMapList);
+			
+			barChartData.add(barChartDataItem);
 		});
-		
-		LOGGER.debug("Processed BarChartData: {}", processedBarChartData.toString());
 
-		return processedBarChartData;
+		LOGGER.debug("Processed BarChartData: {}", barChartData.toString());
+
+		return barChartData;
 	}
 
 	private class BarChartRawDataItemRowMapper implements RowMapper<BarChartRawDataItem> {

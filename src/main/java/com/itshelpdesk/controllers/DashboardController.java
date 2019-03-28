@@ -1,5 +1,7 @@
 package com.itshelpdesk.controllers;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itshelpdesk.model.BarChart;
+import com.itshelpdesk.model.BarChartDataItem;
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.service.DashboardService;
 
@@ -31,11 +33,10 @@ public class DashboardController {
 	private DashboardService dashboardService;
 
 	@GetMapping(path = "/barChart", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BarChart> getTicket(@AuthenticationPrincipal UserDetails userDetails) {
+	public ResponseEntity<List<BarChartDataItem>> getTicket(@AuthenticationPrincipal UserDetails userDetails) {
 		LOGGER.debug("Fetching BarChart details");
-		return new ResponseEntity<BarChart>(dashboardService.fetchTicketCountStatusAndMonthWise(), HttpStatus.OK);
+		return new ResponseEntity<List<BarChartDataItem>>(dashboardService.fetchTicketCountStatusAndMonthWise(),
+				HttpStatus.OK);
 	}
-	
-	
 
 }

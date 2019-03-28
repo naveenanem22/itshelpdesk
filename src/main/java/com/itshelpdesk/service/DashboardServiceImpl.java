@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.itshelpdesk.dao.DashboardDao;
-import com.itshelpdesk.model.BarChart;
+import com.itshelpdesk.model.BarChartDataItem;
 
 @Service(value = "dashboardServiceImpl")
 public class DashboardServiceImpl implements DashboardService {
@@ -26,10 +26,8 @@ public class DashboardServiceImpl implements DashboardService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public BarChart fetchTicketCountStatusAndMonthWise() {
-		BarChart barChart = new BarChart();
-		barChart.setData(dashBoardDao.fetchTicketCountStatusAndMonthWise());
-		return barChart;
+	public List<BarChartDataItem> fetchTicketCountStatusAndMonthWise() {
+		return dashBoardDao.fetchTicketCountStatusAndMonthWise();
 	}
 
 }
