@@ -3,6 +3,7 @@ package com.itshelpdesk.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,10 +92,30 @@ public class DashboardDaoImpl implements DashboardDao {
 					}).collect(Collectors.toList());
 			LOGGER.debug("Extracted Month-Status-TicketCount list for a given month: {}",
 					barChartRawDataForGivenMonth.toString());
+			
+			// Add Empty data for missing status in Month-Status-TicketCount lit for looping month
+			String statusArray[] = new String[] { "Open", "Closed", "InProcess", "New" };
+			List<String> statusList= Arrays.asList(statusArray);
+			List<String> missedStatusList = statusList.stream().filter(status -> {
+				boolean result = true;
+				for(BarChartRawDataItem barChartRawDataItem : barChartRawDataForGivenMonth) {
+					if(barChartRawDataItem.getStatus().equalsIgnoreCase(status)) {
+						result = false;
+						break;
+					}
+				}
+				return result;
+			}).collect(Collectors.toList());
+			LOGGER.debug("Missed StatusList {} for given month",missedStatusList.toString());
+			List<Map<String, Integer>> statusTktCountMapList = new ArrayList<Map<String, Integer>>();
+			missedStatusList.forEach(missedStatus ->{
+				Map<String, Integer> emptyStatusTktCountMap = new HashMap<String, Integer>();
+				emptyStatusTktCountMap.put(missedStatus, 0);
+				statusTktCountMapList.add(emptyStatusTktCountMap);
+			});
 
 			// Create List<Map<String, Integer>> for Status-TicketCount pair list from the
-			// above list			
-			List<Map<String, Integer>> statusTktCountMapList = new ArrayList<Map<String, Integer>>();
+			// above list						
 			barChartRawDataForGivenMonth.forEach(barChartRawDataItem -> {
 				Map<String, Integer> statusTktCountMap = new HashMap<String, Integer>();
 				statusTktCountMap.put(barChartRawDataItem.getStatus(), barChartRawDataItem.getTicketCount());
