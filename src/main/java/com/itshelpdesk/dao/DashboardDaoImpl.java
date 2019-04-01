@@ -2,6 +2,7 @@ package com.itshelpdesk.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,61 +72,63 @@ public class DashboardDaoImpl implements DashboardDao {
 		// Processing the barChartRawData to return in hierarchical map
 		List<BarChartDataItem> barChartData = new ArrayList<BarChartDataItem>();
 
-		// Extracting months from barChartData into a set
-		Set<Integer> monthSet = new HashSet<Integer>();
+		// Extracting year-months from barChartData into a set
+		Set<LocalDateTime> yearMonthSet = new HashSet<LocalDateTime>();
 		barChartRawData.forEach(item -> {
-			monthSet.add(item.getMonth());
+			yearMonthSet.add(item.getLastDayOfTicketCreatedMonth());
 		});
-		LOGGER.debug("Extracted set of months: {}", monthSet.toString());
+		LOGGER.debug("Extracted set of year-months: {}", yearMonthSet.toString());
 
 		// Loop through the set of months
-		monthSet.forEach(month -> {
-			// Create BarChart item for month
+		yearMonthSet.forEach(yearMonth -> {
+			// Create BarChartItem for month
 			BarChartDataItem barChartDataItem = new BarChartDataItem();
-			barChartDataItem.setMonth(month);
+			barChartDataItem.setMonth(yearMonth.getMonth().getValue());
+			barChartDataItem.setYear(yearMonth.getYear());
 
-			// Extract Month-Status-TicketCount list for looping month
-			LOGGER.debug("Looping through month: {}", month.toString());
-			List<BarChartRawDataItem> barChartRawDataForGivenMonth = barChartRawData.stream()
+			// Extract YearMonth-Status-TicketCount list for looping month
+			LOGGER.debug("Looping through year-month: {}", yearMonth.toString());
+			List<BarChartRawDataItem> barChartRawDataForGivenYearMonth = barChartRawData.stream()
 					.filter(barChartRawDataItem -> {
-						return barChartRawDataItem.getMonth().equals(month);
+						return barChartRawDataItem.getLastDayOfTicketCreatedMonth().equals(yearMonth);
 					}).collect(Collectors.toList());
-			LOGGER.debug("Extracted Month-Status-TicketCount list for a given month: {}",
-					barChartRawDataForGivenMonth.toString());
-			
-			// Add Empty data for missing status in Month-Status-TicketCount lit for looping month
+			LOGGER.debug("Extracted YearMonth-Status-TicketCount list for a given month: {}",
+					barChartRawDataForGivenYearMonth.toString());
+
+			// Add Empty data for missing status in Month-Status-TicketCount lit for looping
+			// month
 			String statusArray[] = new String[] { "Open", "Closed", "InProcess", "New" };
-			List<String> statusList= Arrays.asList(statusArray);
+			List<String> statusList = Arrays.asList(statusArray);
 			List<String> missedStatusList = statusList.stream().filter(status -> {
 				boolean result = true;
-				for(BarChartRawDataItem barChartRawDataItem : barChartRawDataForGivenMonth) {
-					if(barChartRawDataItem.getStatus().equalsIgnoreCase(status)) {
+				for (BarChartRawDataItem barChartRawDataItem : barChartRawDataForGivenYearMonth) {
+					if (barChartRawDataItem.getStatus().equalsIgnoreCase(status)) {
 						result = false;
 						break;
 					}
 				}
 				return result;
 			}).collect(Collectors.toList());
-			LOGGER.debug("Missed StatusList {} for given month",missedStatusList.toString());
+			LOGGER.debug("Missed StatusList {} for given year-month", missedStatusList.toString());
 			List<Map<String, Integer>> statusTktCountMapList = new ArrayList<Map<String, Integer>>();
-			missedStatusList.forEach(missedStatus ->{
+			missedStatusList.forEach(missedStatus -> {
 				Map<String, Integer> emptyStatusTktCountMap = new HashMap<String, Integer>();
 				emptyStatusTktCountMap.put(missedStatus, 0);
 				statusTktCountMapList.add(emptyStatusTktCountMap);
 			});
 
 			// Create List<Map<String, Integer>> for Status-TicketCount pair list from the
-			// above list						
-			barChartRawDataForGivenMonth.forEach(barChartRawDataItem -> {
+			// above list
+			barChartRawDataForGivenYearMonth.forEach(barChartRawDataItem -> {
 				Map<String, Integer> statusTktCountMap = new HashMap<String, Integer>();
 				statusTktCountMap.put(barChartRawDataItem.getStatus(), barChartRawDataItem.getTicketCount());
 				statusTktCountMapList.add(statusTktCountMap);
 			});
 			LOGGER.debug("Created list of map of status-ticket pair {} for the given month {}",
-					statusTktCountMapList.toString(), month.toString());
+					statusTktCountMapList.toString(), yearMonth.toString());
 
 			barChartDataItem.setDataPoints(statusTktCountMapList);
-			
+
 			barChartData.add(barChartDataItem);
 		});
 
@@ -139,10 +142,9 @@ public class DashboardDaoImpl implements DashboardDao {
 		@Override
 		public BarChartRawDataItem mapRow(ResultSet rs, int rowNum) throws SQLException {
 			BarChartRawDataItem barChartRawDataItem = new BarChartRawDataItem();
-			barChartRawDataItem.setMonth(rs.getInt("month"));
 			barChartRawDataItem.setStatus(rs.getString("sts_name"));
 			barChartRawDataItem.setTicketCount(rs.getInt("tkt_count"));
-
+			barChartRawDataItem.setLastDayOfTicketCreatedMonth(rs.getTimestamp("last_day_of_month").toLocalDateTime());
 			return barChartRawDataItem;
 		}
 

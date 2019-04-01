@@ -6,9 +6,18 @@ import java.util.Map;
 public class BarChartDataItem {
 	private Integer month;
 	private List<Map<String, Integer>> dataPoints;
+	private Integer year;
 
 	public BarChartDataItem() {
 
+	}
+
+	public Integer getYear() {
+		return year;
+	}
+
+	public void setYear(Integer year) {
+		this.year = year;
 	}
 
 	public Integer getMonth() {
@@ -29,9 +38,7 @@ public class BarChartDataItem {
 
 	@Override
 	public String toString() {
-		return "BarChart [month=" + month + ", dataPoints=" + dataPoints + "]";
+		return "BarChartDataItem [month=" + month + ", dataPoints=" + dataPoints + ", year=" + year + "]";
 	}
-	
-	
 
 }
