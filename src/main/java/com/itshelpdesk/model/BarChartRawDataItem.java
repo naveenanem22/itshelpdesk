@@ -1,5 +1,6 @@
 package com.itshelpdesk.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 
@@ -8,18 +9,18 @@ public class BarChartRawDataItem {
 	String status;
 	Integer ticketCount;
 	Integer year;
-	LocalDateTime lastDayOfTicketCreatedMonth;
+	LocalDate lastDateOfTicketCreatedMonth;
 
 	public BarChartRawDataItem() {
 
 	}
 
-	public LocalDateTime getLastDayOfTicketCreatedMonth() {
-		return lastDayOfTicketCreatedMonth;
+	public LocalDate getLastDateOfTicketCreatedMonth() {
+		return lastDateOfTicketCreatedMonth;
 	}
 
-	public void setLastDayOfTicketCreatedMonth(LocalDateTime lastDayOfTicketCreatedMonth) {
-		this.lastDayOfTicketCreatedMonth = lastDayOfTicketCreatedMonth;
+	public void setLastDateOfTicketCreatedMonth(LocalDate lastDateOfTicketCreatedMonth) {
+		this.lastDateOfTicketCreatedMonth = lastDateOfTicketCreatedMonth;
 	}
 
 	public Integer getYear() {
@@ -57,7 +58,7 @@ public class BarChartRawDataItem {
 	@Override
 	public String toString() {
 		return "BarChartRawDataItem [month=" + month + ", status=" + status + ", ticketCount=" + ticketCount + ", year="
-				+ year + ", lastDayOfTicketCreatedMonth=" + lastDayOfTicketCreatedMonth + "]";
+				+ year + ", lastDateOfTicketCreatedMonth=" + lastDateOfTicketCreatedMonth + "]";
 	}
 
 }
