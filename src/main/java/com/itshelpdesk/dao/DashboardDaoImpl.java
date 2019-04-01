@@ -70,7 +70,7 @@ public class DashboardDaoImpl implements DashboardDao {
 		LOGGER.debug("Fetched BarChartRawData: {}", barChartRawData.toString());
 
 		// Processing the barChartRawData to return in hierarchical map
-		List<BarChartDataItem> barChartData = new ArrayList<BarChartDataItem>();
+		List<BarChartDataItem> processedBarChartData = new ArrayList<BarChartDataItem>();
 
 		// Extracting year-months from barChartData into a set
 		Set<LocalDateTime> yearMonthSet = new HashSet<LocalDateTime>();
@@ -129,12 +129,23 @@ public class DashboardDaoImpl implements DashboardDao {
 
 			barChartDataItem.setDataPoints(statusTktCountMapList);
 
-			barChartData.add(barChartDataItem);
+			processedBarChartData.add(barChartDataItem);
 		});
+		
+		LOGGER.debug("Processed BarChartData: {}", processedBarChartData);
 
-		LOGGER.debug("Processed BarChartData: {}", barChartData.toString());
+		// Sort the data
+		LOGGER.debug("Sort the processed BarChartData by increasing order of time");
+		List<BarChartDataItem> sortedBarChartData = processedBarChartData.stream().sorted((barChartDataItem1, barChartDataItem2) -> {
+			int yearComparisonResult = barChartDataItem1.getYear().compareTo(barChartDataItem2.getYear());
+			if(yearComparisonResult != 0)
+				return yearComparisonResult;
+			return barChartDataItem1.getMonth().compareTo(barChartDataItem2.getMonth());
+		}).collect(Collectors.toList());
 
-		return barChartData;
+		LOGGER.debug("Sorted BarChartData: {}", sortedBarChartData.toString());
+
+		return sortedBarChartData;
 	}
 
 	private class BarChartRawDataItemRowMapper implements RowMapper<BarChartRawDataItem> {
