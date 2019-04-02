@@ -23,6 +23,8 @@ import org.springframework.stereotype.Repository;
 
 import com.itshelpdesk.model.BarChartDataItem;
 import com.itshelpdesk.model.BarChartRawDataItem;
+import com.itshelpdesk.model.PieChartDataItem;
+import com.itshelpdesk.model.PieChartRawDataItem;
 import com.pc.custom.exceptions.InternalServerException;
 import com.pc.report.utils.SeriesFactory;
 
@@ -162,6 +164,32 @@ public class DashboardDaoImpl implements DashboardDao {
 		return sortedBarChartData;
 	}
 
+	@Override
+	public List<PieChartDataItem> fetchDepartmentWisePayload() {
+		LOGGER.debug("Fetching department-wise payload");
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT * FROM viewdepartmentwiseworkload");
+
+		List<PieChartRawDataItem> pieChartRawData = jdbcTemplate.query(sql.toString(),
+				new PieChartRawDataItemRowMapper());
+
+		LOGGER.debug("Fetched PieChartRawData: {}", pieChartRawData);
+
+		// Processing fetched PieChart raw data
+		List<PieChartDataItem> pieChartData = new ArrayList<PieChartDataItem>();
+		pieChartRawData.forEach(pieChartRawDataItem -> {
+			PieChartDataItem pieChartDataItem = new PieChartDataItem();
+			pieChartDataItem.setDepartmentName(pieChartRawDataItem.getDepartmentName());
+			pieChartDataItem.setPayload(pieChartRawDataItem.getTicketCount());
+
+			pieChartData.add(pieChartDataItem);
+		});
+
+		LOGGER.debug("Processed PieChartData: {}", pieChartData);
+
+		return pieChartData;
+	}
+
 	private class BarChartRawDataItemRowMapper implements RowMapper<BarChartRawDataItem> {
 
 		@Override
@@ -191,6 +219,19 @@ public class DashboardDaoImpl implements DashboardDao {
 
 			throw new InternalServerException("An unexpected exception occured");
 
+		}
+
+	}
+
+	private class PieChartRawDataItemRowMapper implements RowMapper<PieChartRawDataItem> {
+
+		@Override
+		public PieChartRawDataItem mapRow(ResultSet rs, int rowNum) throws SQLException {
+			PieChartRawDataItem pieChartRawDataItem = new PieChartRawDataItem();
+			pieChartRawDataItem.setDepartmentName(rs.getString("dept_name"));
+			pieChartRawDataItem.setTicketCount(rs.getInt("ticket_count"));
+
+			return pieChartRawDataItem;
 		}
 
 	}

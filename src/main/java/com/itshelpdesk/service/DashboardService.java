@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.itshelpdesk.model.BarChartDataItem;
+import com.itshelpdesk.model.PieChartDataItem;
 
 public interface DashboardService {
 	Integer fetchCountOfTicketsInLastHourByStatus(String ticketStatus);
 	List<BarChartDataItem> fetchTicketCountStatusAndMonthWise();
+	List<PieChartDataItem> fetchDepartmentWisePayload();
+	
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.itshelpdesk.dao.DashboardDao;
 import com.itshelpdesk.model.BarChartDataItem;
+import com.itshelpdesk.model.PieChartDataItem;
 
 @Service(value = "dashboardServiceImpl")
 public class DashboardServiceImpl implements DashboardService {
@@ -28,6 +29,12 @@ public class DashboardServiceImpl implements DashboardService {
 	@Transactional(readOnly = true)
 	public List<BarChartDataItem> fetchTicketCountStatusAndMonthWise() {
 		return dashBoardDao.fetchTicketCountStatusAndMonthWise();
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<PieChartDataItem> fetchDepartmentWisePayload(){
+		return dashBoardDao.fetchDepartmentWisePayload();
 	}
 
 }
