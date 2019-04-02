@@ -44,22 +44,23 @@ public class DashboardDaoImpl implements DashboardDao {
 
 		LOGGER.debug("Fetching {} ticket-count in the last one hour", ticketStatus);
 		StringBuilder sql = new StringBuilder();
+		Integer count;
 
 		switch (ticketStatus) {
+
 		case "New":
 			sql.append("SELECT * FROM viewnewticketsinlasthour");
-			break;
+			count = jdbcTemplate.queryForObject(sql.toString(), new LastHourNewTicketCountRowMapper());
+			LOGGER.debug("Number of {} tickets in last one hour: {}", ticketStatus, count);
+			return count;
 		case "Closed":
 			sql.append("SELECT * FROM viewclosedticketsinlasthour");
-			break;
+			count = jdbcTemplate.queryForObject(sql.toString(), new LastHourClosedTicketCountRowMapper());
+			LOGGER.debug("Number of {} tickets in last one hour: {}", ticketStatus, count);
+			return count;
 		default:
-			break;
+			throw new InternalServerException("An unexpected error occured while fetching ticket count.");
 		}
-
-		Integer count = jdbcTemplate.queryForObject(sql.toString(), new IntegerRowMapper());
-		LOGGER.debug("Number of {} tickets in last one hour: {}", ticketStatus, count);
-
-		return count;
 
 	}
 
@@ -203,21 +204,21 @@ public class DashboardDaoImpl implements DashboardDao {
 
 	}
 
-	private class IntegerRowMapper implements RowMapper<Integer> {
+	private class LastHourNewTicketCountRowMapper implements RowMapper<Integer> {
 
 		@Override
 		public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-			try {
-				if (rs.findColumn("new_ticket_count_last_hour") > 0)
-					return new Integer(rs.getInt("new_ticket_count_last_hour"));
+			return new Integer(rs.getInt("new_ticket_count_last_hour"));
 
-				if (rs.findColumn("closed_ticket_count_last_hour") > 0)
-					return new Integer(rs.getInt("closed_ticket_count_last_hour"));
-			} catch (Exception ex) {
+		}
 
-			}
+	}
 
-			throw new InternalServerException("An unexpected exception occured");
+	private class LastHourClosedTicketCountRowMapper implements RowMapper<Integer> {
+
+		@Override
+		public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return new Integer(rs.getInt("closed_ticket_count_last_hour"));
 
 		}
 
