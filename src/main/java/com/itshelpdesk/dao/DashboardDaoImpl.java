@@ -95,7 +95,7 @@ public class DashboardDaoImpl implements DashboardDao {
 			if (barChartRawDataForGivenYearMonth.isEmpty()) {
 				LOGGER.debug("No data present in the barChartRawData for the yearMonth: {}", yearMonth.toString());
 				// Add Empty dataPoints for missing yearMonth
-				String statusArray[] = new String[] { "Open", "Closed", "InProcess", "New" };
+				String statusArray[] = new String[] { "Open", "Closed", "Processing", "New", "Pending" };
 				List<String> statusList = Arrays.asList(statusArray);
 				List<Map<String, Integer>> statusTktCountMapList = new ArrayList<Map<String, Integer>>();
 				statusList.forEach(statusItem -> {
@@ -109,7 +109,7 @@ public class DashboardDaoImpl implements DashboardDao {
 			} else {
 				// Add Empty data for missing status in Month-Status-TicketCount lit for looping
 				// month
-				String statusArray[] = new String[] { "Open", "Closed", "InProcess", "New" };
+				String statusArray[] = new String[] { "Open", "Closed", "Processing", "New", "Pending" };
 				List<String> statusList = Arrays.asList(statusArray);
 				List<String> missedStatusList = statusList.stream().filter(status -> {
 					boolean result = true;
