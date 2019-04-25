@@ -15,10 +15,10 @@ public interface TicketService {
 
 	boolean updateTicket(Ticket ticket, String userName);
 
-	boolean deleteTicket(int ticketId, int userId);
+	boolean deleteTicket(int ticketId, String userName);
 
-	int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId);
+	int createTicketHistory(TicketHistory ticketHistory, int ticketId, String userName);
 	
-	boolean assignAndUpdateNewTickets(List<Ticket> tickets, int userId);
+	boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName);
 
 }

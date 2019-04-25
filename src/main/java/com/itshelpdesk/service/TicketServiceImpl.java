@@ -131,21 +131,30 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public boolean deleteTicket(int ticketId, int userId) {
+	public boolean deleteTicket(int ticketId, String userName) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId) {
-		return ticketDao.createTicketHistory(ticketHistory, ticketId, userId);
+	public int createTicketHistory(TicketHistory ticketHistory, int ticketId, String userName) {
+
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+		
+		return ticketDao.createTicketHistory(ticketHistory, ticketId, user.getId());
 	}
 
 	@Override
 	@Transactional
-	public boolean assignAndUpdateNewTickets(List<Ticket> tickets, int userId) {
+	public boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName) {
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+		
 		// Assign new tickets to engineers and update status
-		LOGGER.debug("Update tickets: {} by the user: {}", tickets.toString(), userId);
+		LOGGER.debug("Update tickets: {} by the user with userId: {}", tickets.toString(), user.getId());
 
 		// TODO Fetch userId based on userName or user's firstName or lastName
 		// Update each ticket with fetched userId under assignedTo field
@@ -158,7 +167,7 @@ public class TicketServiceImpl implements TicketService {
 		// Assign tickets
 		if (ticketDao.createTicketAssignments(tickets))
 			// Update ticket status
-			ticketDao.updateMultipleTickets(tickets, userId);
+			ticketDao.updateMultipleTickets(tickets, user.getId());
 
 		return true;
 	}

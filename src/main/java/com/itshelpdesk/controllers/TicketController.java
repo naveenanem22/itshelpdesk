@@ -118,7 +118,7 @@ public class TicketController {
 			@RequestBody List<Ticket> tickets) {
 		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
 
-		ticketService.assignAndUpdateNewTickets(tickets, 1);
+		ticketService.assignAndUpdateNewTickets(tickets, userDetails.getUsername());
 
 		return ResponseEntity.noContent().build();
 	}
