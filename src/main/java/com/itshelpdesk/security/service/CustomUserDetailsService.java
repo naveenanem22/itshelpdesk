@@ -9,46 +9,44 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 @Service(value = "customUserDetailsService")
-public class CustomUserDetailsService implements UserDetailsService{
+public class CustomUserDetailsService implements UserDetailsService {
 	private static List<UserObject> users = new ArrayList();
 
-    public CustomUserDetailsService() {
-        //in a real application, instead of using local data,
-        // we will find user details by some other means e.g. from an external system
-        users.add(new UserObject("erin", "123", "ADMIN"));
-        users.add(new UserObject("mike", "234", "ENGINEER"));
-        users.add(new UserObject("han", "345", "USER"));
-    }
+	public CustomUserDetailsService() {
+		// In a real application, instead of using local data,
+		// we will find user details by some other means e.g. from an external system
+		users.add(new UserObject("erin", "123", "ADMIN"));
+		users.add(new UserObject("mike", "234", "ENGINEER"));
+		users.add(new UserObject("han", "345", "USER"));
+		users.add(new UserObject("sandra", "456", "MANAGER"));
+	}
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UserObject> user = users.stream()
-                                         .filter(u -> u.name.equals(username))
-                                         .findAny();
-        if (!user.isPresent()) {
-            throw new UsernameNotFoundException("User not found by name: " + username);
-        }
-        return toUserDetails(user.get());
-    }
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		Optional<UserObject> user = users.stream().filter(u -> u.name.equals(username)).findAny();
+		if (!user.isPresent()) {
+			throw new UsernameNotFoundException("User not found by name: " + username);
+		}
+		return toUserDetails(user.get());
+	}
 
-    private UserDetails toUserDetails(UserObject userObject) {
-        return User.withDefaultPasswordEncoder()
-        		.username(userObject.name)
-                .password(userObject.password)
-                .roles(userObject.role).build();
-    }
+	private UserDetails toUserDetails(UserObject userObject) {
+		return User.withDefaultPasswordEncoder().username(userObject.name).password(userObject.password)
+				.roles(userObject.role).build();
+	}
 
-    private static class UserObject {
-        private String name;
-        private String password;
-        private String role;
+	private static class UserObject {
+		private String name;
+		private String password;
+		private String role;
 
-        public UserObject(String name, String password, String role) {
-            this.name = name;
-            this.password = password;
-            this.role = role;
-        }
-    }
+		public UserObject(String name, String password, String role) {
+			this.name = name;
+			this.password = password;
+			this.role = role;
+		}
+	}
 
 }
