@@ -28,7 +28,7 @@ public class UserDaoImpl implements UserDao {
 
 	@Override
 	public User fetchUserByUserName(String userName) {
-		LOGGER.debug("Fetching userId for the given UserName: {}", userName);
+		LOGGER.debug("Fetching user for the given UserName: {}", userName);
 		StringBuilder sql = new StringBuilder();
 
 		sql.append("SELECT * FROM user WHERE u_username = ?");

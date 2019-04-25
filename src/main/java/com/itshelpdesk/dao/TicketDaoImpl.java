@@ -144,15 +144,15 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public List<Ticket> getTickets(String userName, String status, String priority) {
-		LOGGER.debug("Fetching tickets for the user with username: " + userName);
+	public List<Ticket> getTickets(int userId, String status, String priority) {
+		LOGGER.debug("Fetching tickets for the user with userId: " + userId);
 
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
 		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
-		sql.append("WHERE user.u_username =:u_username");
+		sql.append("WHERE user.u_id =:u_id");
 		if (status != null && !(status.isEmpty()))
 			sql.append(" && sts_name = :sts_name");
 		if (priority != null && !(priority.isEmpty()))
@@ -161,7 +161,7 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("u_username", userName);
+		paramMap.put("u_id", userId);
 		paramMap.put("sts_name", status);
 		paramMap.put("pty_name", priority);
 		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
@@ -228,12 +228,13 @@ public class TicketDaoImpl implements TicketDao {
 		// Updating multiple tickets in ticket table
 		LOGGER.debug("Updating status of tickets: {} by the userId: {}", tickets.toString(), userId);
 		StringBuilder sql = new StringBuilder();
-		sql.append("UPDATE ticket SET tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name like :sts_name) WHERE tkt_id =:tkt_id");
+		sql.append(
+				"UPDATE ticket SET tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name like :sts_name) WHERE tkt_id =:tkt_id");
 
 		List<Map<String, Object>> batchValues = new ArrayList<>(tickets.size());
 		tickets.forEach(ticket -> {
-			batchValues.add(new MapSqlParameterSource("tkt_id", ticket.getId())
-					.addValue("sts_name", ticket.getStatus()).getValues());
+			batchValues.add(new MapSqlParameterSource("tkt_id", ticket.getId()).addValue("sts_name", ticket.getStatus())
+					.getValues());
 
 		});
 

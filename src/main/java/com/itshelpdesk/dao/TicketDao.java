@@ -9,7 +9,7 @@ public interface TicketDao {
 
 	Ticket getTicket(int id, int userId);
 
-	List<Ticket> getTickets(String userName, String status, String priority);
+	List<Ticket> getTickets(int userId, String status, String priority);
 
 	boolean updateTicket(Ticket ticket, int userId);
 	

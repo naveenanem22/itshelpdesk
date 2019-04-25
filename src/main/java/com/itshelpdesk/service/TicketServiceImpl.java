@@ -40,7 +40,7 @@ public class TicketServiceImpl implements TicketService {
 	@Autowired
 	@Qualifier("itsHelpDeskAttachmentDaoImpl")
 	ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
-	
+
 	@Autowired
 	@Qualifier("userServiceImpl")
 	private UserService userService;
@@ -60,18 +60,22 @@ public class TicketServiceImpl implements TicketService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<Ticket> getTicketsByUserName(String userName, String status, String priority) {
-		LOGGER.debug("Fetching ticktets for the user with username: " + userName);
-		return ticketDao.getTickets(userName, status, priority);
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+
+		LOGGER.debug("Fetching ticktets for the user with userId: " + user.getId());
+		return ticketDao.getTickets(user.getId(), status, priority);
 	}
 
 	@Override
 	@Transactional
 	public boolean updateTicket(Ticket ticket, String userName) {
-		//Fetch user by given userName
+		// Fetch user by given userName
 		LOGGER.debug("Fetching user by userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
-		
+
 		/*
 		 * Update ticket table only when there is an update to atleast one of -sts_name,
 		 * dept_id, pty_name, tkttype_name or svctype_name
@@ -142,7 +146,7 @@ public class TicketServiceImpl implements TicketService {
 	public boolean assignAndUpdateNewTickets(List<Ticket> tickets, int userId) {
 		// Assign new tickets to engineers and update status
 		LOGGER.debug("Update tickets: {} by the user: {}", tickets.toString(), userId);
-		
+
 		// TODO Fetch userId based on userName or user's firstName or lastName
 		// Update each ticket with fetched userId under assignedTo field
 		tickets.forEach(ticket -> {
@@ -150,7 +154,6 @@ public class TicketServiceImpl implements TicketService {
 			assignedTo.setId(2);
 			ticket.setAssignedTo(assignedTo);
 		});
-
 
 		// Assign tickets
 		if (ticketDao.createTicketAssignments(tickets))
