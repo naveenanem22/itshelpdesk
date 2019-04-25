@@ -40,6 +40,10 @@ public class TicketServiceImpl implements TicketService {
 	@Autowired
 	@Qualifier("itsHelpDeskAttachmentDaoImpl")
 	ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
+	
+	@Autowired
+	@Qualifier("userServiceImpl")
+	private UserService userService;
 
 	public int createTicket(Ticket ticket, int userId) {
 		LOGGER.debug("Creating ticket with the details: {} by the user with id: {}", ticket, userId);
@@ -62,7 +66,12 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	@Transactional
-	public boolean updateTicket(Ticket ticket, int userId) {
+	public boolean updateTicket(Ticket ticket, String userName) {
+		//Fetch user by given userName
+		LOGGER.debug("Fetching user by userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+		
 		/*
 		 * Update ticket table only when there is an update to atleast one of -sts_name,
 		 * dept_id, pty_name, tkttype_name or svctype_name
@@ -73,15 +82,15 @@ public class TicketServiceImpl implements TicketService {
 		if (!(ticket.getStatus() == null && ticket.getDepartment() == null && ticket.getPriority() == null
 				&& ticket.getServiceCategory() == null && ticket.getType() == null)) {
 
-			LOGGER.debug("Updating ticket-details: {} for the given userId: {}", ticket, userId);
-			ticketDao.updateTicket(ticket, userId);
+			LOGGER.debug("Updating ticket-details: {} for the given userId: {}", ticket, user.getId());
+			ticketDao.updateTicket(ticket, user.getId());
 
 		}
 
 		// Create tickethistory item in table if tickethistory is present
 		if (ticket.getTicketHistoryList() != null)
 			ticketHistoryId = ticketDao.createTicketHistory(ticket.getTicketHistoryList().get(0), ticket.getId(),
-					userId);
+					user.getId());
 
 		// Upload attachments only if it has attachment(s) to be uploaded
 		List<MultipartFile> files = new ArrayList<MultipartFile>();

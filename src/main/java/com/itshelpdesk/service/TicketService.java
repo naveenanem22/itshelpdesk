@@ -13,7 +13,7 @@ public interface TicketService {
 
 	List<Ticket> getTicketsByUserName(String userName, String status, String priority);
 
-	boolean updateTicket(Ticket ticket, int userId);
+	boolean updateTicket(Ticket ticket, String userName);
 
 	boolean deleteTicket(int ticketId, int userId);
 
