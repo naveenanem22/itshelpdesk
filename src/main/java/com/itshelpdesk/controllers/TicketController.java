@@ -146,7 +146,7 @@ public class TicketController {
 		ticket.setDepartment(department);
 		ticket.setStatus(status);
 
-		int ticketId = ticketService.createTicket(ticket, 1);
+		int ticketId = ticketService.createTicket(ticket, userDetails.getUsername());
 		LOGGER.debug("Ticket created with id: {}", ticketId);
 
 		return ResponseEntity.created(null).build();
@@ -157,7 +157,7 @@ public class TicketController {
 			@PathVariable("id") int ticketId) {
 		LOGGER.debug("Fetching ticket details with id:{} for the user with userName:{}", ticketId,
 				userDetails.getUsername());
-		Ticket ticket = ticketService.getTicket(ticketId, 1);
+		Ticket ticket = ticketService.getTicket(ticketId, userDetails.getUsername());
 		LOGGER.debug("Fetched ticket details: {}", ticket);
 		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
 	}

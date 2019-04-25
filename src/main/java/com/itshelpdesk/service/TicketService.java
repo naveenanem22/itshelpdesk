@@ -7,9 +7,9 @@ import com.itshelpdesk.model.TicketHistory;
 
 public interface TicketService {
 
-	int createTicket(Ticket ticket, int userId);
+	int createTicket(Ticket ticket, String userName);
 
-	Ticket getTicket(int ticketId, int userId);
+	Ticket getTicket(int ticketId, String userName);
 
 	List<Ticket> getTicketsByUserName(String userName, String status, String priority);
 

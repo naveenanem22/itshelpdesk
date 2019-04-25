@@ -45,16 +45,25 @@ public class TicketServiceImpl implements TicketService {
 	@Qualifier("userServiceImpl")
 	private UserService userService;
 
-	public int createTicket(Ticket ticket, int userId) {
-		LOGGER.debug("Creating ticket with the details: {} by the user with id: {}", ticket, userId);
-		return ticketDao.createTicket(ticket, userId);
+	public int createTicket(Ticket ticket, String userName) {
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+
+		LOGGER.debug("Creating ticket with the details: {} by the user with id: {}", ticket, user.getId());
+		return ticketDao.createTicket(ticket, user.getId());
 
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Ticket getTicket(int ticketId, int userId) {
-		return ticketDao.getTicket(ticketId, userId);
+	public Ticket getTicket(int ticketId, String userName) {
+
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+
+		return ticketDao.getTicket(ticketId, user.getId());
 	}
 
 	@Override
@@ -142,7 +151,7 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
-		
+
 		return ticketDao.createTicketHistory(ticketHistory, ticketId, user.getId());
 	}
 
@@ -152,7 +161,7 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
-		
+
 		// Assign new tickets to engineers and update status
 		LOGGER.debug("Update tickets: {} by the user with userId: {}", tickets.toString(), user.getId());
 
