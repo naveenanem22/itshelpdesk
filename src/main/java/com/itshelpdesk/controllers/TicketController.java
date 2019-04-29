@@ -37,7 +37,7 @@ import com.pc.model.Department;
 import com.pc.services.FileStorageService;
 
 @RestController(value = "ticketController")
-@RequestMapping("/v0/ticket-management/tickets")
+@RequestMapping("/v0")
 @Validated
 public class TicketController {
 
@@ -50,7 +50,7 @@ public class TicketController {
 	@Autowired
 	private FileStorageService fileStorageService;
 
-	@GetMapping("/downloadFile/{fileName:.+}")
+	@GetMapping("/ticket-management/tickets/downloadFile/{fileName:.+}")
 	public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
 		// Load file as Resource
 		LOGGER.debug("Download request received...");
@@ -76,7 +76,7 @@ public class TicketController {
 				.body(resource);
 	}
 
-	@PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
 			@RequestPart(value = "comment", required = true) String comment,
@@ -113,7 +113,7 @@ public class TicketController {
 		return ResponseEntity.noContent().build();
 	}
 
-	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+	@PutMapping(path="/ticket-management/tickets", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> updateMultipleTickets(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestBody List<Ticket> tickets) {
 		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
@@ -123,7 +123,7 @@ public class TicketController {
 		return ResponseEntity.noContent().build();
 	}
 
-	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(path="/ticket-management/tickets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("ticketTitle") String title, @RequestParam("ticketDescription") String description,
 			@RequestParam("department") String departmentName, @RequestParam("priority") String priority,
@@ -152,7 +152,7 @@ public class TicketController {
 		return ResponseEntity.created(null).build();
 	}
 
-	@GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/ticket-management/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable("id") int ticketId) {
 		LOGGER.debug("Fetching ticket details with id:{} for the user with userName:{}", ticketId,
@@ -162,7 +162,7 @@ public class TicketController {
 		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
 	}
 
-	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path="/ticket-management/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(value = "status", required = false) String statusName,
 			@RequestParam(value = "priority", required = false) String priority) {
