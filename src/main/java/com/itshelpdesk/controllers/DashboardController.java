@@ -24,7 +24,7 @@ import com.itshelpdesk.model.PieChartDataItem;
 import com.itshelpdesk.service.DashboardService;
 
 @RestController(value = "dashboardController")
-@RequestMapping("/v0/dashboard")
+@RequestMapping("/v0/ticket-management/dashboard")
 @Validated
 public class DashboardController {
 
