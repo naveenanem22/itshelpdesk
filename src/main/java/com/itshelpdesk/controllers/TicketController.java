@@ -49,8 +49,9 @@ public class TicketController {
 
 	@Autowired
 	private FileStorageService fileStorageService;
-
-	@GetMapping("/ticket-management/tickets/downloadFile/{fileName:.+}")
+	
+	/**********************root URI START***********************/
+	@GetMapping("/tickets/downloadFile/{fileName:.+}")
 	public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
 		// Load file as Resource
 		LOGGER.debug("Download request received...");
@@ -75,9 +76,55 @@ public class TicketController {
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
 				.body(resource);
 	}
+	/**********************root URI END***********************/
+	
+	/**********************ticket-management URI START***********************/
+	@PutMapping(path="/ticket-management/tickets", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> updateTickets(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestBody List<Ticket> tickets) {
+		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
 
-	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
+		ticketService.assignAndUpdateNewTickets(tickets, userDetails.getUsername());
+
+		return ResponseEntity.noContent().build();
+	}
+
+	
+
+	@GetMapping(path = "/ticket-management/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable("id") int ticketId) {
+		LOGGER.debug("Fetching ticket details with id:{} for the user with userName:{}", ticketId,
+				userDetails.getUsername());
+		Ticket ticket = ticketService.getTicket(ticketId);
+		LOGGER.debug("Fetched ticket details: {}", ticket);
+		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
+	}
+
+	@GetMapping(path="/ticket-management/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam(value = "status", required = false) String statusName,
+			@RequestParam(value = "priority", required = false) String priority) {
+		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
+
+		// Setting empty fields for searching if they are not present in the request
+		if (statusName == null || statusName.equalsIgnoreCase("all") || statusName.equalsIgnoreCase("null"))
+			statusName = "";
+		else
+			LOGGER.debug("Search Criteria - status: {}", statusName);
+		if (priority == null || priority.equalsIgnoreCase("null"))
+			priority = "";
+		else
+			LOGGER.debug("Search Criteria - priority: {}", priority);
+
+		return new ResponseEntity<List<Ticket>>(
+				ticketService.getTickets(statusName, priority), HttpStatus.OK);
+	}
+	
+	/**********************ticket-management URI END***********************/
+	/**********************ticket-support URI START************************/
+	@PutMapping(path = "/ticket-support/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Object> updateAssignedTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
 			@RequestPart(value = "comment", required = true) String comment,
 			@RequestPart(value = "commentedOn", required = true) String commentedOn,
@@ -112,18 +159,9 @@ public class TicketController {
 		ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
-
-	@PutMapping(path="/ticket-management/tickets", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> updateMultipleTickets(@AuthenticationPrincipal UserDetails userDetails,
-			@RequestBody List<Ticket> tickets) {
-		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
-
-		ticketService.assignAndUpdateNewTickets(tickets, userDetails.getUsername());
-
-		return ResponseEntity.noContent().build();
-	}
-
-	@PostMapping(path="/ticket-management/tickets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	/**********************ticket-support URI END**************************/
+	/**********************ticketing URI START*****************************/
+	@PostMapping(path="/ticketing/tickets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("ticketTitle") String title, @RequestParam("ticketDescription") String description,
 			@RequestParam("department") String departmentName, @RequestParam("priority") String priority,
@@ -151,35 +189,44 @@ public class TicketController {
 
 		return ResponseEntity.created(null).build();
 	}
+	
+	
+	@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Object> updateOwnTicket(@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable(value = "id", required = true) int ticketId,
+			@RequestPart(value = "comment", required = true) String comment,
+			@RequestPart(value = "commentedOn", required = true) String commentedOn,
+			@RequestPart(value = "file1", required = false) MultipartFile file1,
+			@RequestPart(value = "file2", required = false) MultipartFile file2,
+			@RequestPart(value = "file3", required = false) MultipartFile file3,
+			@RequestPart(value = "status", required = false) String status) {
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		if (file1 != null)
+			files.add(file1);
+		if (file2 != null)
+			files.add(file2);
+		if (file3 != null)
+			files.add(file3);
 
-	@GetMapping(path = "/ticket-management/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails,
-			@PathVariable("id") int ticketId) {
-		LOGGER.debug("Fetching ticket details with id:{} for the user with userName:{}", ticketId,
-				userDetails.getUsername());
-		Ticket ticket = ticketService.getTicket(ticketId, userDetails.getUsername());
-		LOGGER.debug("Fetched ticket details: {}", ticket);
-		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
+		TicketHistory ticketHistory = new TicketHistory();
+		ticketHistory.setAuthorName(userDetails.getUsername());
+		ticketHistory.setComment(comment);
+		ticketHistory.setCommentedDate(LocalDateTime.now());
+		ticketHistory.setFiles(files);
+
+		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
+		ticketHistoryList.add(ticketHistory);
+
+		Ticket ticket = new Ticket();
+		ticket.setId(ticketId);
+		if (status != null)
+			ticket.setStatus(status);
+		ticket.setTicketHistoryList(ticketHistoryList);
+		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
+
+		ticketService.updateTicket(ticket, userDetails.getUsername());
+		return ResponseEntity.noContent().build();
 	}
-
-	@GetMapping(path="/ticket-management/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
-			@RequestParam(value = "status", required = false) String statusName,
-			@RequestParam(value = "priority", required = false) String priority) {
-		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
-
-		// Setting empty fields for searching if they are not present in the request
-		if (statusName == null || statusName.equalsIgnoreCase("all") || statusName.equalsIgnoreCase("null"))
-			statusName = "";
-		else
-			LOGGER.debug("Search Criteria - status: {}", statusName);
-		if (priority == null || priority.equalsIgnoreCase("null"))
-			priority = "";
-		else
-			LOGGER.debug("Search Criteria - priority: {}", priority);
-
-		return new ResponseEntity<List<Ticket>>(
-				ticketService.getTicketsByUserName(userDetails.getUsername(), statusName, priority), HttpStatus.OK);
-	}
+	/**********************ticketing URI END***********************/
 
 }

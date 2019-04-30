@@ -13,7 +13,7 @@ public interface TicketDao {
 
 	boolean updateTicket(Ticket ticket, int userId);
 
-	boolean updateMultipleTickets(List<Ticket> tickets, int userId);
+	boolean updateTickets(List<Ticket> tickets);
 
 	boolean deleteTicket(int ticketId, int userId);
 
@@ -22,5 +22,9 @@ public interface TicketDao {
 	int createTicket(Ticket ticket, int userId);
 
 	boolean createTicketAssignments(List<Ticket> tickets);
+	
+	List<Ticket> getTickets(String status, String priority);
+	
+	Ticket getTicket(int id);
 
 }

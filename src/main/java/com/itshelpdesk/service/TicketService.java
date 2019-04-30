@@ -18,7 +18,11 @@ public interface TicketService {
 	boolean deleteTicket(int ticketId, String userName);
 
 	int createTicketHistory(TicketHistory ticketHistory, int ticketId, String userName);
-	
+
 	boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName);
+
+	List<Ticket> getTickets(String status, String priority);
+
+	Ticket getTicket(int ticketId);
 
 }

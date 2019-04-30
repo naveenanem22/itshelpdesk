@@ -176,9 +176,26 @@ public class TicketServiceImpl implements TicketService {
 		// Assign tickets
 		if (ticketDao.createTicketAssignments(tickets))
 			// Update ticket status
-			ticketDao.updateMultipleTickets(tickets, user.getId());
+			ticketDao.updateTickets(tickets);
 
 		return true;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<Ticket> getTickets(String status, String priority) {
+		LOGGER.debug("Fetching tickets");
+		List<Ticket> tickets = ticketDao.getTickets(status, priority);
+		LOGGER.debug("Fetched tickets: {}", tickets);
+		return tickets;
+	}
+
+	@Override
+	public Ticket getTicket(int ticketId) {
+		LOGGER.debug("Fetching ticket details with id: {}", ticketId);
+		Ticket ticket = ticketDao.getTicket(ticketId);
+		LOGGER.debug("Fetched ticket details: {}", ticket);
+		return ticket;
 	}
 
 }
