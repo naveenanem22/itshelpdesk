@@ -198,4 +198,29 @@ public class TicketServiceImpl implements TicketService {
 		return ticket;
 	}
 
+	@Override
+	public List<Ticket> getTicketsByAssignee(String userName) {
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+
+		LOGGER.debug("Fetching tickets assigned to the user with id: {}", user.getId());
+		List<Ticket> tickets = ticketDao.getTicketsByAssignee(user.getId());
+
+		return tickets;
+	}
+
+	@Override
+	public Ticket getTicketByAssignee(String userName, int ticketId) {
+
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+
+		LOGGER.debug("Fetching ticket details assigned to the user with id: {}", user.getId());
+		Ticket ticket = ticketDao.getTicketByAssignee(ticketId, user.getId());
+		LOGGER.debug("Fetched ticket details: {}", ticket.toString());
+		return ticket;
+	}
+
 }

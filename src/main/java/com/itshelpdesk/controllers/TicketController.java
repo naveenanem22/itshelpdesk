@@ -49,8 +49,8 @@ public class TicketController {
 
 	@Autowired
 	private FileStorageService fileStorageService;
-	
-	/**********************root URI START***********************/
+
+	/********************** root URI START ***********************/
 	@GetMapping("/tickets/downloadFile/{fileName:.+}")
 	public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
 		// Load file as Resource
@@ -76,10 +76,11 @@ public class TicketController {
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
 				.body(resource);
 	}
-	/**********************root URI END***********************/
-	
-	/**********************ticket-management URI START***********************/
-	@PutMapping(path="/ticket-management/tickets", consumes = MediaType.APPLICATION_JSON_VALUE)
+
+	/********************** root URI END ***********************/
+
+	/********************** ticket-management URI START ***********************/
+	@PutMapping(path = "/ticket-management/tickets", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> updateTickets(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestBody List<Ticket> tickets) {
 		LOGGER.debug("Updating tickets: {} by the given user: {}", tickets.toString(), userDetails.getUsername());
@@ -88,8 +89,6 @@ public class TicketController {
 
 		return ResponseEntity.noContent().build();
 	}
-
-	
 
 	@GetMapping(path = "/ticket-management/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails,
@@ -101,7 +100,7 @@ public class TicketController {
 		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
 	}
 
-	@GetMapping(path="/ticket-management/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/ticket-management/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(value = "status", required = false) String statusName,
 			@RequestParam(value = "priority", required = false) String priority) {
@@ -117,12 +116,11 @@ public class TicketController {
 		else
 			LOGGER.debug("Search Criteria - priority: {}", priority);
 
-		return new ResponseEntity<List<Ticket>>(
-				ticketService.getTickets(statusName, priority), HttpStatus.OK);
+		return new ResponseEntity<List<Ticket>>(ticketService.getTickets(statusName, priority), HttpStatus.OK);
 	}
-	
-	/**********************ticket-management URI END***********************/
-	/**********************ticket-support URI START************************/
+
+	/********************** ticket-management URI END ***********************/
+	/********************** ticket-support URI START ************************/
 	@PutMapping(path = "/ticket-support/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateAssignedTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
@@ -159,9 +157,28 @@ public class TicketController {
 		ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
-	/**********************ticket-support URI END**************************/
-	/**********************ticketing URI START*****************************/
-	@PostMapping(path="/ticketing/tickets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
+	@GetMapping(path = "/ticket-support/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Ticket>> getTicketsByAssignee(@AuthenticationPrincipal UserDetails userDetails) {
+		LOGGER.debug("Fetching tickets assigned to the user with userName: " + userDetails.getUsername());
+
+		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByAssignee(userDetails.getUsername()),
+				HttpStatus.OK);
+	}
+
+	@GetMapping(path = "/ticket-support/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Ticket> getTicketByAssignee(@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable("id") int ticketId) {
+		LOGGER.debug("Fetching ticket details with id:{} assigned to the user with the userName:{}", ticketId,
+				userDetails.getUsername());
+		Ticket ticket = ticketService.getTicketByAssignee(userDetails.getUsername(), ticketId);
+		LOGGER.debug("Fetched ticket details: {}", ticket.toString());
+		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
+	}
+
+	/********************** ticket-support URI END **************************/
+	/********************** ticketing URI START *****************************/
+	@PostMapping(path = "/ticketing/tickets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("ticketTitle") String title, @RequestParam("ticketDescription") String description,
 			@RequestParam("department") String departmentName, @RequestParam("priority") String priority,
@@ -189,8 +206,7 @@ public class TicketController {
 
 		return ResponseEntity.created(null).build();
 	}
-	
-	
+
 	@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateOwnTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
@@ -227,6 +243,6 @@ public class TicketController {
 		ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
-	/**********************ticketing URI END***********************/
+	/********************** ticketing URI END ***********************/
 
 }

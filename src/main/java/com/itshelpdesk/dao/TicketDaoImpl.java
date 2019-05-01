@@ -48,6 +48,75 @@ public class TicketDaoImpl implements TicketDao {
 	private ItsHelpDeskAttachmentDao itsHelpDeskAttachmentDao;
 
 	@Override
+	public List<Ticket> getTickets(String status, String priority) {
+		LOGGER.debug("Fetching tickets");
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		if (status != null && !(status.isEmpty()))
+			sql.append(" && sts_name = :sts_name");
+		if (priority != null && !(priority.isEmpty()))
+			sql.append(" && pty_name = :pty_name");
+
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("sts_name", status);
+		paramMap.put("pty_name", priority);
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		LOGGER.debug("Tickets fetched: " + tickets.toString());
+		return tickets;
+	}
+
+	@Override
+	public Ticket getTicket(int id) {
+		List<Ticket> tickets;
+		try {
+			LOGGER.debug("Fetching ticket with id:{}", id);
+
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT ticket.*, department.dept_name, ");
+			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
+			sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+			sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+			sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+			sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+			sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+
+			sql.append("WHERE tkt_id = :tkt_id");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("tkt_id", id);
+
+			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketDetailsRowMapper());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
+		}
+
+		if (tickets.size() == 0) {
+			throw new RecordNotFoundException("No Ticket with the id: " + id + " found.");
+		} else if (tickets.size() == 1) {
+			// Printing ticket details:
+			LOGGER.debug("Fetched ticket details: {}", tickets.get(0).toString());
+			// Fetching the ticket-history
+			List<TicketHistory> ticketHistoryList = getTicketHistory(id);
+
+			// Attaching ticket-history to ticket
+			tickets.get(0).setTicketHistoryList(ticketHistoryList);
+
+			// Returning the fetched ticket
+			return tickets.get(0);
+		}
+
+		else
+			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
+	}
+
+	@Override
 	public Ticket getTicket(int id, int userId) {
 		List<Ticket> tickets;
 		try {
@@ -242,6 +311,78 @@ public class TicketDaoImpl implements TicketDao {
 		return true;
 	}
 
+	@Override
+	public List<Ticket> getTicketsByAssignee(int assigneeId) {
+		LOGGER.debug("Fetching tickets assigned to the user with userId: " + assigneeId);
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("INNER JOIN viewticketsassignedtouser ON tkt_id = tatu_tkt_id");
+		sql.append("WHERE tatu_assigned_to =:tatu_assigned_to");
+
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tatu_assigned_to", assigneeId);
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		LOGGER.debug("Tickets fetched: " + tickets.toString());
+		return tickets;
+	}
+
+	@Override
+	public Ticket getTicketByCreator(int id, int userId) {
+		return null;
+	}
+
+	@Override
+	public Ticket getTicketByAssignee(int ticketId, int assignedTo) {
+		List<Ticket> tickets;
+		try {
+			LOGGER.debug("Fetching ticket with id:{} assigned to: {}", ticketId, assignedTo);
+
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT ticket.*, department.dept_name, ");
+			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
+			sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+			sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+			sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+			sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+			sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+			sql.append("INNER JOIN viewticketsassignedtouser ON tkt_id = tatu_tkt_id ");
+			sql.append("WHERE tkt_id = :tkt_id && tatu_assigned_to = :tatu_assigned_to");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("tkt_id", ticketId);
+			paramMap.put("tatu_assigned_to", assignedTo);
+
+			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketDetailsRowMapper());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new InternalServerException("Unexpected error occurred while fetching ticket details.");
+		}
+
+		if (tickets.size() == 0) {
+			throw new RecordNotFoundException("No Ticket with the id: " + ticketId + " found.");
+		} else if (tickets.size() == 1) {
+			// Printing ticket details:
+			LOGGER.debug("Fetched ticket details: {}", tickets.get(0).toString());
+			// Fetching the ticket-history
+			List<TicketHistory> ticketHistoryList = getTicketHistory(ticketId);
+
+			// Attaching ticket-history to ticket
+			tickets.get(0).setTicketHistoryList(ticketHistoryList);
+
+			// Returning the fetched ticket
+			return tickets.get(0);
+		}
+
+		else
+			throw new InternalServerException("Unexpected error occurred while fetching ticket details.");
+	}
+
 	/*********** CRUD operations for ticketassignment table *******/
 
 	public boolean createTicketAssignments(List<Ticket> tickets) {
@@ -400,75 +541,6 @@ public class TicketDaoImpl implements TicketDao {
 			return ticketHistoryList;
 		}
 
-	}
-
-	@Override
-	public List<Ticket> getTickets(String status, String priority) {
-		LOGGER.debug("Fetching tickets");
-
-		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
-		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
-		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
-		if (status != null && !(status.isEmpty()))
-			sql.append(" && sts_name = :sts_name");
-		if (priority != null && !(priority.isEmpty()))
-			sql.append(" && pty_name = :pty_name");
-
-		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
-
-		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("sts_name", status);
-		paramMap.put("pty_name", priority);
-		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
-		LOGGER.debug("Tickets fetched: " + tickets.toString());
-		return tickets;
-	}
-
-	@Override
-	public Ticket getTicket(int id) {
-		List<Ticket> tickets;
-		try {
-			LOGGER.debug("Fetching ticket with id:{}", id);
-
-			StringBuilder sql = new StringBuilder();
-			sql.append("SELECT ticket.*, department.dept_name, ");
-			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
-			sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
-			sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
-			sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
-			sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
-			sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
-
-			sql.append("WHERE tkt_id = :tkt_id");
-
-			Map<String, Object> paramMap = new HashMap<String, Object>();
-			paramMap.put("tkt_id", id);
-
-			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketDetailsRowMapper());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
-		}
-
-		if (tickets.size() == 0) {
-			throw new RecordNotFoundException("No Ticket with the id: " + id + " found.");
-		} else if (tickets.size() == 1) {
-			// Printing ticket details:
-			LOGGER.debug("Fetched ticket details: {}", tickets.get(0).toString());
-			// Fetching the ticket-history
-			List<TicketHistory> ticketHistoryList = getTicketHistory(id);
-
-			// Attaching ticket-history to ticket
-			tickets.get(0).setTicketHistoryList(ticketHistoryList);
-
-			// Returning the fetched ticket
-			return tickets.get(0);
-		}
-
-		else
-			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
 	}
 
 }
