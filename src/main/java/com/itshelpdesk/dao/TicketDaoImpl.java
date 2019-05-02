@@ -321,10 +321,10 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
 		sql.append("INNER JOIN viewticketsassignedtouser ON tkt_id = tatu_tkt_id ");
 		sql.append("WHERE tatu_assigned_to =:tatu_assigned_to");
-		if (status != null && !(status.isEmpty()))
+		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
 			sql.append(" && sts_name = :sts_name");
 
-		LOGGER.debug("Fetching the tickets using query: {} with the status: {}", sql.toString(), status);
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tatu_assigned_to", assigneeId);
