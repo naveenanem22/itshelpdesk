@@ -312,8 +312,8 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public List<Ticket> getTicketsByAssignee(int assigneeId) {
-		LOGGER.debug("Fetching tickets assigned to the user with userId: " + assigneeId);
+	public List<Ticket> getTicketsByAssignee(int assigneeId, String status) {
+		LOGGER.debug("Fetching tickets assigned to the user with userId: {}, status: {}", assigneeId, status);
 
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
@@ -321,11 +321,14 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
 		sql.append("INNER JOIN viewticketsassignedtouser ON tkt_id = tatu_tkt_id ");
 		sql.append("WHERE tatu_assigned_to =:tatu_assigned_to");
+		if (status != null && !(status.isEmpty()))
+			sql.append(" && sts_name = :sts_name");
 
-		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
+		LOGGER.debug("Fetching the tickets using query: {} with the status: {}", sql.toString(), status);
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tatu_assigned_to", assigneeId);
+		paramMap.put("sts_name", status);
 		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;

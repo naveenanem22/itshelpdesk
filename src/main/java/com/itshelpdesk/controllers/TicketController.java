@@ -165,7 +165,7 @@ public class TicketController {
 		LOGGER.debug("Fetching tickets assigned to the user with userName: {}, status: {} and sortBy: {}",
 				userDetails.getUsername(), status, sortBy);
 
-		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByAssignee(userDetails.getUsername()),
+		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByAssignee(userDetails.getUsername(), status),
 				HttpStatus.OK);
 	}
 

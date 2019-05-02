@@ -10,7 +10,7 @@ public interface TicketDao {
 	@Deprecated
 	Ticket getTicket(int id, int userId);
 
-	List<Ticket> getTicketsByAssignee(int userId);
+	List<Ticket> getTicketsByAssignee(int userId, String status);
 
 	Ticket getTicketByAssignee(int ticketId, int userId);
 

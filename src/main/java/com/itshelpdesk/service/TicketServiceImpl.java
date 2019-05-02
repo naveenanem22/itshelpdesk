@@ -199,13 +199,13 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public List<Ticket> getTicketsByAssignee(String userName) {
+	public List<Ticket> getTicketsByAssignee(String userName, String status) {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
 
-		LOGGER.debug("Fetching tickets assigned to the user with id: {}", user.getId());
-		List<Ticket> tickets = ticketDao.getTicketsByAssignee(user.getId());
+		LOGGER.debug("Fetching tickets assigned to the user with id: {} with the status: {}", user.getId(), status);
+		List<Ticket> tickets = ticketDao.getTicketsByAssignee(user.getId(), status);
 
 		return tickets;
 	}

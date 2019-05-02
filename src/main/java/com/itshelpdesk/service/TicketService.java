@@ -23,7 +23,7 @@ public interface TicketService {
 
 	List<Ticket> getTickets(String status, String priority);
 
-	List<Ticket> getTicketsByAssignee(String userName);
+	List<Ticket> getTicketsByAssignee(String userName, String status);
 
 	Ticket getTicket(int ticketId);
 
