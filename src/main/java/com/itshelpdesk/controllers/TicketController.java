@@ -159,8 +159,11 @@ public class TicketController {
 	}
 
 	@GetMapping(path = "/ticket-support/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Ticket>> getTicketsByAssignee(@AuthenticationPrincipal UserDetails userDetails) {
-		LOGGER.debug("Fetching tickets assigned to the user with userName: " + userDetails.getUsername());
+	public ResponseEntity<List<Ticket>> getTicketsByAssignee(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam(required = false, name = "status") String status,
+			@RequestParam(required = false, name = "sortBy") String sortBy) {
+		LOGGER.debug("Fetching tickets assigned to the user with userName: {}, status: {} and sortBy: {}",
+				userDetails.getUsername(), status, sortBy);
 
 		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByAssignee(userDetails.getUsername()),
 				HttpStatus.OK);
