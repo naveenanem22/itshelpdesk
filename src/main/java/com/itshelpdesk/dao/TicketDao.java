@@ -11,6 +11,8 @@ public interface TicketDao {
 	Ticket getTicket(int id, int userId);
 
 	List<Ticket> getTicketsByAssignee(int userId, String status);
+	
+	List<Ticket> getTicketsByCreator(int userId, String status);
 
 	Ticket getTicketByAssignee(int ticketId, int userId);
 

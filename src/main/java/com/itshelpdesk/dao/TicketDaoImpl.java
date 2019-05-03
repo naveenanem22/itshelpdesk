@@ -333,10 +333,74 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
 	}
+	
+	@Override
+	public List<Ticket> getTicketsByCreator(int createdBy, String status) {
+		LOGGER.debug("Fetching tickets created by the user with userId: {}, status: {}", createdBy, status);
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("WHERE tkt_created_by =:tkt_created_by");
+		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
+			sql.append(" && sts_name = :sts_name");
+
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_created_by", createdBy);
+		paramMap.put("sts_name", status);
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		LOGGER.debug("Tickets fetched: " + tickets.toString());
+		return tickets;
+	}
 
 	@Override
-	public Ticket getTicketByCreator(int id, int userId) {
-		return null;
+	public Ticket getTicketByCreator(int ticketId, int createdBy) {
+		List<Ticket> tickets;
+		try {
+			LOGGER.debug("Fetching ticket with id:{} created by the user with userId: {}", ticketId, createdBy);
+
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT ticket.*, department.dept_name, ");
+			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
+			sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+			sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+			sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+			sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+			sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+			sql.append("WHERE tkt_id = :tkt_id && tkt_created_by = :tkt_created_by");
+
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("tkt_id", ticketId);
+			paramMap.put("tkt_created_by", createdBy);
+
+			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketDetailsRowMapper());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new InternalServerException("Unexpected error occurred while fetching the ticket details.");
+		}
+
+		if (tickets.size() == 0) {
+			throw new RecordNotFoundException("No Ticket with the id: " + ticketId + " found.");
+		} else if (tickets.size() == 1) {
+			// Printing ticket details:
+			LOGGER.debug("Fetched ticket details: {}", tickets.get(0).toString());
+			// Fetching the ticket-history
+			List<TicketHistory> ticketHistoryList = getTicketHistory(ticketId);
+
+			// Attaching ticket-history to ticket
+			tickets.get(0).setTicketHistoryList(ticketHistoryList);
+
+			// Returning the fetched ticket
+			return tickets.get(0);
+		}
+
+		else
+			throw new InternalServerException("Unexpected error occurred while fetching the Interview details.");
+
 	}
 
 	@Override
@@ -545,5 +609,7 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
+
+
 
 }

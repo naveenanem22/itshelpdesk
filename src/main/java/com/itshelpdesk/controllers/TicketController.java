@@ -246,6 +246,28 @@ public class TicketController {
 		ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
+	
+	@GetMapping(path = "/ticketing/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam(required = false, name = "status") String status,
+			@RequestParam(required = false, name = "sortBy") String sortBy) {
+		LOGGER.debug("Fetching tickets created by the user with userName: {}, status: {} and sortBy: {}",
+				userDetails.getUsername(), status, sortBy);
+
+		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByCreator(userDetails.getUsername(), status),
+				HttpStatus.OK);
+	}
+
+	@GetMapping(path = "/ticketing/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Ticket> getTicketByCreator(@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable("id") int ticketId) {
+		LOGGER.debug("Fetching ticket details with id:{} created by the user with the userName:{}", ticketId,
+				userDetails.getUsername());
+		Ticket ticket = ticketService.getTicketByCreator(userDetails.getUsername(), ticketId);
+		LOGGER.debug("Fetched ticket details: {}", ticket.toString());
+		return new ResponseEntity<Ticket>(ticket, HttpStatus.OK);
+	}
+
 	/********************** ticketing URI END ***********************/
 
 }

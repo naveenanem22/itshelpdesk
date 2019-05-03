@@ -65,6 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/auth/login").permitAll()
 				.antMatchers("/v0/ticket-management/**").hasAnyRole("MANAGER")
 				.antMatchers("/v0/ticket-support/**").hasAnyRole("ENGINEER")
+				.antMatchers("/v0/ticketing/**").hasAnyRole("EMPLOYEE")
 				.anyRequest().authenticated()
 			.and()
 				.headers().frameOptions().disable()

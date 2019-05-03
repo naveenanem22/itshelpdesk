@@ -19,7 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 		// we will find user details by some other means e.g. from an external system
 		users.add(new UserObject("erin", "123", "ADMIN"));
 		users.add(new UserObject("mike", "234", "ENGINEER"));
-		users.add(new UserObject("han", "345", "USER"));
+		users.add(new UserObject("han", "345", "EMPLOYEE"));
 		users.add(new UserObject("sandra", "456", "MANAGER"));
 	}
 

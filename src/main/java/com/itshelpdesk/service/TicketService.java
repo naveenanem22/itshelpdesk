@@ -24,9 +24,13 @@ public interface TicketService {
 	List<Ticket> getTickets(String status, String priority);
 
 	List<Ticket> getTicketsByAssignee(String userName, String status);
+	
+	List<Ticket> getTicketsByCreator(String userName, String status);
 
 	Ticket getTicket(int ticketId);
 
 	Ticket getTicketByAssignee(String userName, int ticketId);
+	
+	Ticket getTicketByCreator(String userName, int ticketId);
 
 }

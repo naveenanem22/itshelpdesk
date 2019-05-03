@@ -223,4 +223,27 @@ public class TicketServiceImpl implements TicketService {
 		return ticket;
 	}
 
+	@Override
+	public List<Ticket> getTicketsByCreator(String userName, String status) {
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+		
+		LOGGER.debug("Fetching tickets created by the user with userId: {}", user.getId());
+		List<Ticket> tickets = ticketDao.getTicketsByCreator(user.getId(), status);
+		LOGGER.debug("Tickets fetched: {}", tickets.toString());
+		return tickets;
+	}
+
+	@Override
+	public Ticket getTicketByCreator(String userName, int ticketId) {
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+		
+		LOGGER.debug("Fetching ticket details created by the user with id: {}", user.getId());
+		Ticket ticket = ticketDao.getTicketByCreator(ticketId, user.getId());
+		return ticket;
+	}
+
 }
