@@ -46,13 +46,15 @@ public class UserDaoImpl implements UserDao {
 		sql.append("SELECT * FROM user ");
 		sql.append("INNER JOIN userrole ON ur_u_id = u_id ");
 		sql.append("INNER JOIN role ON ur_role_id = role_id ");
+		sql.append("INNER JOIN useremployee ON ue_u_id = u_id ");
+		sql.append("INNER JOIN employee ON ue_emp_id = emp_id ");
 		sql.append("WHERE role_name = :role_name");
 
 		LOGGER.debug("Fetching data with the sql: {}", sql.toString());
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("role_name", roleName);
 
-		List<User> users = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new UserRowMapper());
+		List<User> users = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new UserWithDetailsRowMapper());
 		LOGGER.debug("Fetched users: {}", users.toString());
 		return users;
 	}
@@ -64,6 +66,20 @@ public class UserDaoImpl implements UserDao {
 			User user = new User();
 			user.setId(rs.getInt("u_id"));
 			user.setUserName(rs.getString("u_username"));
+			return user;
+		}
+
+	}
+
+	private class UserWithDetailsRowMapper implements RowMapper<User> {
+
+		@Override
+		public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+			User user = new User();
+			user.setId(rs.getInt("u_id"));
+			user.setUserName(rs.getString("u_username"));
+			user.setFirstName(rs.getString("emp_firstname"));
+			user.setLastName(rs.getString("emp_lastname"));
 			return user;
 		}
 
