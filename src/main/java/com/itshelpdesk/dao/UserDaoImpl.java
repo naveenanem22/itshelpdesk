@@ -3,6 +3,7 @@ package com.itshelpdesk.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -36,6 +37,24 @@ public class UserDaoImpl implements UserDao {
 		User user = jdbcTemplate.queryForObject(sql.toString(), new Object[] { userName }, new UserRowMapper());
 
 		return user;
+	}
+
+	@Override
+	public List<User> fetchUsersByRole(String roleName) {
+		LOGGER.debug("Fetching users with the role: {}", roleName);
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT * FROM user ");
+		sql.append("INNER JOIN userrole ON ur_u_id = u_id ");
+		sql.append("INNER JOIN role ON ur_role_id = role_id ");
+		sql.append("WHERE role_name = :role_name");
+
+		LOGGER.debug("Fetching data with the sql: {}", sql.toString());
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("role_name", roleName);
+
+		List<User> users = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new UserRowMapper());
+		LOGGER.debug("Fetched users: {}", users.toString());
+		return users;
 	}
 
 	private class UserRowMapper implements RowMapper<User> {
