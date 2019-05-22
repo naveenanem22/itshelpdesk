@@ -90,6 +90,18 @@ public class TicketController {
 		return ResponseEntity.noContent().build();
 	}
 
+	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
+			@RequestBody Ticket ticket, @PathVariable("id") int ticketId) {
+		//Setting ticketId
+		ticket.setId(ticketId);
+		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
+
+		ticketService.assignTicketByManager(ticket, userDetails.getUsername());
+
+		return ResponseEntity.noContent().build();
+	}
+
 	@GetMapping(path = "/ticket-management/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Ticket> getTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable("id") int ticketId) {
@@ -246,7 +258,7 @@ public class TicketController {
 		ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
-	
+
 	@GetMapping(path = "/ticketing/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(required = false, name = "status") String status,

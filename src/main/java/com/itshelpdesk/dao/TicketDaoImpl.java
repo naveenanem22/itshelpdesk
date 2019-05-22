@@ -31,6 +31,7 @@ import com.pc.custom.exceptions.InternalServerException;
 import com.pc.custom.exceptions.RecordNotFoundException;
 import com.pc.model.Attachment;
 import com.pc.model.Department;
+import com.pc.model.User;
 
 @Repository(value = "ticketDaoImpl")
 public class TicketDaoImpl implements TicketDao {
@@ -293,6 +294,42 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
+	public boolean updateTicketByManager(Ticket ticket) {
+		int numberOfRowsAffected = 0;
+
+		// Update ticket's status by manager
+		LOGGER.debug("Updating ticket: {}", ticket);
+		StringBuilder sql = new StringBuilder();
+		if (!ticket.getStatus().isEmpty()) {
+			sql.append("UPDATE ticket SET tkt_updated_date =:tkt_updated_date ");
+			sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
+			sql.append(" WHERE tkt_id= :tkt_id");
+		}
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("sts_name", ticket.getStatus());
+		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
+		paramMap.put("tkt_id", ticket.getId());
+		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
+		if (numberOfRowsAffected > 1 || numberOfRowsAffected == 0)
+			throw new InternalServerException("Unexpected exception occured while updating ticket.");
+
+		return true;
+	}
+
+	@Override
+	public boolean updateTicketByCreator(Ticket ticket, User createdBy) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean updateTicketByAssignee(Ticket ticket, User assignee) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
 	public boolean updateTickets(List<Ticket> tickets) {
 		// Updating multiple tickets in ticket table
 		LOGGER.debug("Updating status of tickets: {}", tickets.toString());
@@ -333,7 +370,7 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
 	}
-	
+
 	@Override
 	public List<Ticket> getTicketsByCreator(int createdBy, String status) {
 		LOGGER.debug("Fetching tickets created by the user with userId: {}, status: {}", createdBy, status);
@@ -477,8 +514,30 @@ public class TicketDaoImpl implements TicketDao {
 		return true;
 	}
 
-	public boolean createTicketAssignment() {
-		return false;
+	public boolean createTicketAssignment(Ticket ticket) {
+		int numberOfRowsAffected;
+		// Insert ticket-assignment records as a batch
+		LOGGER.debug("Inserting ticketassignment records");
+		StringBuilder sql = new StringBuilder();
+		sql.append("INSERT INTO ticketassignment ");
+		sql.append("(");
+		sql.append("ta_tkt_id, ta_assigned_to, ta_created_date");
+		sql.append(")");
+		sql.append("VALUES ");
+		sql.append("(");
+		sql.append(":ta_tkt_id, :ta_assigned_to, :ta_created_date");
+		sql.append(")");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("ta_tkt_id", ticket.getId());
+		paramMap.put("ta_assigned_to", ticket.getAssignedTo().getId());
+		paramMap.put("ta_created_date", ticket.getCreatedDate());
+
+		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
+		if (numberOfRowsAffected == 0 || numberOfRowsAffected > 1)
+			throw new InternalServerException("Unexpected error occured while assigning ticket.");
+
+		return true;
 	}
 
 	/*********** CRUD operations for tickethistory table *******/
@@ -609,7 +668,5 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
-
-
 
 }

@@ -1,5 +1,7 @@
 package com.itshelpdesk.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -157,6 +159,38 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	@Transactional
+	public boolean assignTicketByManager(Ticket ticket, String userName) {
+
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+		
+		//Set audit-logging for the ticket
+		LOGGER.debug("Setting audit-logging for updatedDate");
+		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
+		
+		//Fetching assigedTo user based on username
+		LOGGER.debug("Fetching assignedTo user data");
+		User assignedTo = userService.getUserByUserName(ticket.getAssignedTo().getUserName());
+		LOGGER.debug("Fetched assignedTo user: {}", user);
+		
+		//Updating the assignedTo field of the ticket
+		ticket.setAssignedTo(assignedTo);
+		
+		//Creating assignment record
+		ticketDao.createTicketAssignment(ticket);
+		LOGGER.debug("ticket-assignment successful.");
+
+		//Updating ticket's status
+		LOGGER.debug("Updating ticket: {} with the status: {} by the user: {}", ticket, ticket.getStatus(), user);		
+		ticketDao.updateTicketByManager(ticket);
+		LOGGER.debug("ticket-status update successful.");
+		
+		return true;
+	}
+
+	@Override
+	@Transactional
 	public boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName) {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
@@ -228,7 +262,7 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
-		
+
 		LOGGER.debug("Fetching tickets created by the user with userId: {}", user.getId());
 		List<Ticket> tickets = ticketDao.getTicketsByCreator(user.getId(), status);
 		LOGGER.debug("Tickets fetched: {}", tickets.toString());
@@ -240,7 +274,7 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
-		
+
 		LOGGER.debug("Fetching ticket details created by the user with id: {}", user.getId());
 		Ticket ticket = ticketDao.getTicketByCreator(ticketId, user.getId());
 		return ticket;

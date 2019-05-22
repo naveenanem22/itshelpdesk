@@ -20,6 +20,8 @@ public interface TicketService {
 	int createTicketHistory(TicketHistory ticketHistory, int ticketId, String userName);
 
 	boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName);
+	
+	boolean assignTicketByManager(Ticket ticket, String userName);
 
 	List<Ticket> getTickets(String status, String priority);
 
