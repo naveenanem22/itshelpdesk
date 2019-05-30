@@ -53,9 +53,18 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Fetching tickets");
 
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
+		sql.append("SELECT tkt_id, tkt_description, tkt_title, tkt_updated_date, sts_name, pty_name, ");
+		sql.append("emp_firstname, emp_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date ");
+		sql.append("FROM ticket ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+		sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
+		sql.append("INNER JOIN useremployee ON ue_u_id = u_id ");
+		sql.append("INNER JOIN employee ON emp_id = ue_emp_id ");
+		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id");
+		
 		if (status != null && !(status.isEmpty()))
 			sql.append(" && sts_name = :sts_name");
 		if (priority != null && !(priority.isEmpty()))
@@ -66,7 +75,7 @@ public class TicketDaoImpl implements TicketDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("sts_name", status);
 		paramMap.put("pty_name", priority);
-		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapperV2());
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
 	}
@@ -653,6 +662,30 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
+	
+	private static class TicketsRowMapperV2 implements RowMapper<Ticket> {
+
+		@Override
+		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Department department = new Department();
+			department.setName(rs.getString("dept_name"));
+			
+			Ticket ticket = new Ticket();
+			ticket.setId(rs.getInt("tkt_id"));
+			ticket.setStatus(rs.getString("sts_name"));
+			ticket.setTitle(rs.getString("tkt_title"));
+			ticket.setPriority(rs.getString("pty_name"));
+			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
+			ticket.setDepartment(department);
+			ticket.setServiceCategory(rs.getString("svctype_name"));
+			ticket.setType(rs.getString("tkttype_name"));
+			ticket.setCreatedDate(rs.getTimestamp("tkt_created_date").toLocalDateTime());
+			ticket.setDescription(rs.getString("tkt_description"));
+			return ticket;
+		}
+
+	}
+
 
 	private static class TicketHistoryRowMapper implements RowMapper<TicketHistory> {
 
