@@ -32,6 +32,7 @@ import com.pc.custom.exceptions.RecordNotFoundException;
 import com.pc.model.Attachment;
 import com.pc.model.Department;
 import com.pc.model.User;
+import com.pmt.model.Employee;
 
 @Repository(value = "ticketDaoImpl")
 public class TicketDaoImpl implements TicketDao {
@@ -54,17 +55,21 @@ public class TicketDaoImpl implements TicketDao {
 
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT tkt_id, tkt_description, tkt_title, tkt_updated_date, sts_name, pty_name, ");
-		sql.append("emp_firstname, emp_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date ");
+		sql.append("e1.emp_firstname AS created_by_firstname, e1.emp_lastname AS created_by_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date, ");
+		sql.append("e2.emp_firstname AS updated_by_firstname, e2.emp_lastname AS updated_by_lastname ");
 		sql.append("FROM ticket ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
 		sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
 		sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
-		sql.append("INNER JOIN user ON tkt_created_by = u_id ");
-		sql.append("INNER JOIN useremployee ON ue_u_id = u_id ");
-		sql.append("INNER JOIN employee ON emp_id = ue_emp_id ");
+		sql.append("INNER JOIN user u1 ON tkt_updated_by = u1.u_id ");
+		sql.append("INNER JOIN useremployee ue1 ON ue1.ue_u_id = u1.u_id ");
+		sql.append("INNER JOIN employee e1 ON e1.emp_id = ue1.ue_emp_id ");
+		sql.append("INNER JOIN user u2 ON tkt_created_by = u2.u_id ");
+		sql.append("INNER JOIN useremployee ue2 ON ue2.ue_u_id = u2.u_id ");
+		sql.append("INNER JOIN employee e2 ON e2.emp_id = ue2.ue_emp_id ");
 		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id");
-		
+
 		if (status != null && !(status.isEmpty()))
 			sql.append(" && sts_name = :sts_name");
 		if (priority != null && !(priority.isEmpty()))
@@ -662,14 +667,22 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
-	
+
 	private static class TicketsRowMapperV2 implements RowMapper<Ticket> {
 
 		@Override
 		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Department department = new Department();
 			department.setName(rs.getString("dept_name"));
-			
+
+			Employee createdBy = new Employee();
+			createdBy.setFirstName(rs.getString("created_by_firstname"));
+			createdBy.setLastName(rs.getString("created_by_lastname"));
+
+			Employee updatedBy = new Employee();
+			updatedBy.setFirstName(rs.getString("updated_by_firstname"));
+			updatedBy.setLastName(rs.getString("updated_by_lastname"));
+
 			Ticket ticket = new Ticket();
 			ticket.setId(rs.getInt("tkt_id"));
 			ticket.setStatus(rs.getString("sts_name"));
@@ -681,11 +694,12 @@ public class TicketDaoImpl implements TicketDao {
 			ticket.setType(rs.getString("tkttype_name"));
 			ticket.setCreatedDate(rs.getTimestamp("tkt_created_date").toLocalDateTime());
 			ticket.setDescription(rs.getString("tkt_description"));
+			ticket.setCreatedBy(createdBy);
+			ticket.setUpdatedBy(updatedBy);
 			return ticket;
 		}
 
 	}
-
 
 	private static class TicketHistoryRowMapper implements RowMapper<TicketHistory> {
 

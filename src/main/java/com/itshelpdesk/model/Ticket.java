@@ -10,6 +10,7 @@ import com.pc.deserializers.JsonDateDeserializer;
 import com.pc.model.Department;
 import com.pc.model.User;
 import com.pc.serializers.JsonDateSerializer;
+import com.pmt.model.Employee;
 
 public class Ticket {
 
@@ -49,6 +50,12 @@ public class Ticket {
 	@JsonProperty("ticketHistory")
 	private List<TicketHistory> ticketHistoryList;
 
+	@JsonProperty("createdBy")
+	private Employee createdBy;
+
+	@JsonProperty("updatedBy")
+	private Employee updatedBy;
+
 	@JsonProperty(value = "createdDate")
 	@JsonSerialize(using = JsonDateSerializer.class)
 	@JsonDeserialize(using = JsonDateDeserializer.class)
@@ -61,6 +68,22 @@ public class Ticket {
 
 	public Ticket() {
 
+	}
+
+	public Employee getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(Employee updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+	public Employee getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Employee createdBy) {
+		this.createdBy = createdBy;
 	}
 
 	public User getAssignedTo() {
@@ -180,8 +203,8 @@ public class Ticket {
 		return "Ticket [id=" + id + ", title=" + title + ", description=" + description + ", department=" + department
 				+ ", priority=" + priority + ", serviceCategory=" + serviceCategory + ", officeLocation="
 				+ officeLocation + ", deskNumber=" + deskNumber + ", type=" + type + ", status=" + status
-				+ ", assignedTo=" + assignedTo + ", ticketHistoryList=" + ticketHistoryList + ", createdDate="
-				+ createdDate + ", updatedDate=" + updatedDate + "]";
+				+ ", assignedTo=" + assignedTo + ", ticketHistoryList=" + ticketHistoryList + ", createdBy=" + createdBy
+				+ ", updatedBy=" + updatedBy + ", createdDate=" + createdDate + ", updatedDate=" + updatedDate + "]";
 	}
 
 }
