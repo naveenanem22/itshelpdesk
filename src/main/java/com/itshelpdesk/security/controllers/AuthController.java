@@ -56,6 +56,7 @@ public class AuthController {
             model.put("username", username);
             model.put("token", token);
             model.put("role", grantedAuthorities[0].toString());
+            model.put("employeeId", 112234);
             return ok(model);
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("Invalid username/password supplied");

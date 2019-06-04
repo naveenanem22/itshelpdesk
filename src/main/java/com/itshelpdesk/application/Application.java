@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@SpringBootApplication(scanBasePackages = { "com.itshelpdesk.*", "com.pc.*" })
+@SpringBootApplication(scanBasePackages = { "com.itshelpdesk.*", "com.pc.*", "com.pmt.*" })
 public class Application {
 	@PostConstruct
 	public void init() {
