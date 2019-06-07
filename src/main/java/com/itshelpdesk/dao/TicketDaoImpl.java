@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameter;
@@ -55,7 +58,8 @@ public class TicketDaoImpl implements TicketDao {
 
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT tkt_id, tkt_description, tkt_title, tkt_updated_date, sts_name, pty_name, ");
-		sql.append("e1.emp_firstname AS created_by_firstname, e1.emp_lastname AS created_by_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date, ");
+		sql.append(
+				"e1.emp_firstname AS created_by_firstname, e1.emp_lastname AS created_by_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date, ");
 		sql.append("e2.emp_firstname AS updated_by_firstname, e2.emp_lastname AS updated_by_lastname ");
 		sql.append("FROM ticket ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
@@ -405,6 +409,49 @@ public class TicketDaoImpl implements TicketDao {
 		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
+	}
+
+	@Override
+	public Page<Ticket> getPaginatedTicketsByCreator(int createdBy, String status, Pageable pageable) {
+		LOGGER.debug("Fetching tickets created by the user with userId: {}, status: {}", createdBy, status);
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("tkt_created_by", createdBy);
+		paramMap.put("sts_name", status);
+		paramMap.put("limit", pageable.getPageSize());
+		paramMap.put("offset", pageable.getOffset());
+
+		/* Fetching totalRowCount for the purpose of paginating */
+		int totalRowCount;
+		LOGGER.debug("Fetching totalRowCount for the purpose of paginating.");
+
+		StringBuilder totalRowCountSql = new StringBuilder();
+		totalRowCountSql.append("SELECT COUNT(*) AS count FROM ticket ");
+		totalRowCountSql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		totalRowCountSql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		totalRowCountSql.append("WHERE tkt_created_by =:tkt_created_by");
+		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
+			totalRowCountSql.append(" && sts_name = :sts_name");
+		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
+				.intValue();
+		
+		LOGGER.debug("Fetched totalRowCount: {}", totalRowCount);
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("WHERE tkt_created_by =:tkt_created_by");
+		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
+			sql.append(" && sts_name = :sts_name");
+		sql.append(" LIMIT :limit");
+		sql.append(" OFFSET :offset");
+
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
+
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		LOGGER.debug("Tickets fetched: " + tickets.toString());
+		return new PageImpl<>(tickets, pageable, totalRowCount);
 	}
 
 	@Override

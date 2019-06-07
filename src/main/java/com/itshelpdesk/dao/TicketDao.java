@@ -2,6 +2,9 @@ package com.itshelpdesk.dao;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.pc.model.User;
@@ -14,6 +17,8 @@ public interface TicketDao {
 	List<Ticket> getTicketsByAssignee(int userId, String status);
 
 	List<Ticket> getTicketsByCreator(int userId, String status);
+	
+	Page<Ticket> getPaginatedTicketsByCreator(int userId, String status, Pageable pageable);
 
 	Ticket getTicketByAssignee(int ticketId, int userId);
 

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -93,7 +94,7 @@ public class TicketController {
 	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestBody Ticket ticket, @PathVariable("id") int ticketId) {
-		//Setting ticketId
+		// Setting ticketId
 		ticket.setId(ticketId);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
 
@@ -259,14 +260,32 @@ public class TicketController {
 		return ResponseEntity.noContent().build();
 	}
 
+	/*
+	 * @GetMapping(path = "/ticketing/tickets", produces =
+	 * MediaType.APPLICATION_JSON_VALUE) public ResponseEntity<List<Ticket>>
+	 * getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
+	 * 
+	 * @RequestParam(required = false, name = "status") String status,
+	 * 
+	 * @RequestParam(required = false, name = "sortBy") String sortBy) { LOGGER.
+	 * debug("Fetching tickets created by the user with userName: {}, status: {} and sortBy: {}"
+	 * , userDetails.getUsername(), status, sortBy);
+	 * 
+	 * return new
+	 * ResponseEntity<List<Ticket>>(ticketService.getTicketsByCreator(userDetails.
+	 * getUsername(), status), HttpStatus.OK); }
+	 */
 	@GetMapping(path = "/ticketing/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
+	public ResponseEntity<Page<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(required = false, name = "status") String status,
-			@RequestParam(required = false, name = "sortBy") String sortBy) {
+			@RequestParam(required = false, name = "sortBy") String sortBy,
+			@RequestParam(required = false, name = "pageNumber") int pageNumber,
+			@RequestParam(required = false, name = "pageSize") int pageSize) {
 		LOGGER.debug("Fetching tickets created by the user with userName: {}, status: {} and sortBy: {}",
 				userDetails.getUsername(), status, sortBy);
 
-		return new ResponseEntity<List<Ticket>>(ticketService.getTicketsByCreator(userDetails.getUsername(), status),
+		return new ResponseEntity<Page<Ticket>>(
+				ticketService.getPaginatedTicketsByCreator(userDetails.getUsername(), status, pageNumber, pageSize),
 				HttpStatus.OK);
 	}
 

@@ -9,6 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -164,28 +168,28 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
-		
-		//Set audit-logging for the ticket
+
+		// Set audit-logging for the ticket
 		LOGGER.debug("Setting audit-logging for updatedDate");
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
-		
-		//Fetching assigedTo user based on username
+
+		// Fetching assigedTo user based on username
 		LOGGER.debug("Fetching assignedTo user data");
 		User assignedTo = userService.getUserByUserName(ticket.getAssignedTo().getUserName());
 		LOGGER.debug("Fetched assignedTo user: {}", user);
-		
-		//Updating the assignedTo field of the ticket
+
+		// Updating the assignedTo field of the ticket
 		ticket.setAssignedTo(assignedTo);
-		
-		//Creating assignment record
+
+		// Creating assignment record
 		ticketDao.createTicketAssignment(ticket);
 		LOGGER.debug("ticket-assignment successful.");
 
-		//Updating ticket's status
-		LOGGER.debug("Updating ticket: {} with the status: {} by the user: {}", ticket, ticket.getStatus(), user);		
+		// Updating ticket's status
+		LOGGER.debug("Updating ticket: {} with the status: {} by the user: {}", ticket, ticket.getStatus(), user);
 		ticketDao.updateTicketByManager(ticket);
 		LOGGER.debug("ticket-status update successful.");
-		
+
 		return true;
 	}
 
@@ -267,6 +271,21 @@ public class TicketServiceImpl implements TicketService {
 		List<Ticket> tickets = ticketDao.getTicketsByCreator(user.getId(), status);
 		LOGGER.debug("Tickets fetched: {}", tickets.toString());
 		return tickets;
+	}
+
+	@Override
+	public Page<Ticket> getPaginatedTicketsByCreator(String userName, String status, int pageNumber, int pageSize) {
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
+
+		LOGGER.debug("Creating pageable object with pageNumber: {} and size: {}", pageNumber, pageSize);
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+		LOGGER.debug("Fetching tickets created by the user with userId: {}", user.getId());
+		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTicketsByCreator(user.getId(), status, pageable);
+		LOGGER.debug("Tickets fetched: {}", paginatedTickets.toString());
+		return paginatedTickets;
 	}
 
 	@Override

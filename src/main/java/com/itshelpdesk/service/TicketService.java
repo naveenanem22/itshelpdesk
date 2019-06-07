@@ -2,6 +2,8 @@ package com.itshelpdesk.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 
@@ -20,19 +22,21 @@ public interface TicketService {
 	int createTicketHistory(TicketHistory ticketHistory, int ticketId, String userName);
 
 	boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName);
-	
+
 	boolean assignTicketByManager(Ticket ticket, String userName);
 
 	List<Ticket> getTickets(String status, String priority);
 
 	List<Ticket> getTicketsByAssignee(String userName, String status);
-	
+
 	List<Ticket> getTicketsByCreator(String userName, String status);
+
+	Page<Ticket> getPaginatedTicketsByCreator(String userName, String status, int pageNumber, int pageSize);
 
 	Ticket getTicket(int ticketId);
 
 	Ticket getTicketByAssignee(String userName, int ticketId);
-	
+
 	Ticket getTicketByCreator(String userName, int ticketId);
 
 }
