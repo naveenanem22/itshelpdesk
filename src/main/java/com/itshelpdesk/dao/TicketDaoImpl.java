@@ -419,7 +419,9 @@ public class TicketDaoImpl implements TicketDao {
 		paramMap.put("tkt_created_by", createdBy);
 		paramMap.put("sts_name", status);
 		paramMap.put("limit", pageable.getPageSize());
-		paramMap.put("offset", pageable.getOffset());
+		//Subtracting 3 to set correct Offset to MySql
+		paramMap.put("offset", pageable.getOffset()-3);
+		LOGGER.debug("paramMap: {}", paramMap.toString());
 
 		/* Fetching totalRowCount for the purpose of paginating */
 		int totalRowCount;
