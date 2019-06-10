@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.pc.deserializers.JsonDateDeserializer;
 import com.pc.model.Attachment;
 import com.pc.serializers.JsonDateSerializer;
+import com.pmt.model.Employee;
 
 public class TicketHistory {
 
@@ -19,6 +20,9 @@ public class TicketHistory {
 
 	@JsonProperty("authorName")
 	private String authorName;
+
+	@JsonProperty("author")
+	private Employee author;
 
 	@JsonProperty(value = "commentedOn")
 	@JsonSerialize(using = JsonDateSerializer.class)
@@ -35,6 +39,14 @@ public class TicketHistory {
 
 	public TicketHistory() {
 
+	}
+
+	public Employee getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(Employee author) {
+		this.author = author;
 	}
 
 	public List<MultipartFile> getFiles() {
@@ -87,8 +99,8 @@ public class TicketHistory {
 
 	@Override
 	public String toString() {
-		return "TicketHistory [id=" + id + ", authorName=" + authorName + ", commentedDate=" + commentedDate
-				+ ", comment=" + comment + ", attachments=" + attachments + "]";
+		return "TicketHistory [id=" + id + ", authorName=" + authorName + ", author=" + author + ", commentedDate="
+				+ commentedDate + ", comment=" + comment + ", attachments=" + attachments + ", files=" + files + "]";
 	}
 
 }

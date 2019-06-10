@@ -609,10 +609,13 @@ public class TicketDaoImpl implements TicketDao {
 	public List<TicketHistory> getTicketHistory(int ticketId) {
 		LOGGER.debug("Fetching tickethistory for ticket with id:{}", ticketId);
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT ticketconversation.*, user.u_username FROM ticketconversation ");
+		sql.append("SELECT ticketconversation.*, u_username, ");
+		sql.append("emp_firstname, emp_lastname FROM ticketconversation ");
 		sql.append("INNER JOIN ticket ON tktconv_tkt_id = tkt_id ");
 		sql.append("INNER JOIN user ON tktconv_author = u_id ");
-		sql.append("WHERE tkt_id =:tkt_id");
+		sql.append("INNER JOIN useremployee ON tktconv_author = ue_u_id ");
+		sql.append("INNER JOIN employee ON emp_id = ue_emp_id ");
+		sql.append("WHERE tkt_id =:tkt_id ORDER BY tktconv_commented_on DESC");
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tkt_id", ticketId);
@@ -785,6 +788,10 @@ public class TicketDaoImpl implements TicketDao {
 		@Override
 		public TicketHistory mapRow(ResultSet rs, int rowNum) throws SQLException {
 			TicketHistory ticketHistoryList = new TicketHistory();
+			Employee author = new Employee();
+			author.setFirstName(rs.getString("emp_firstname"));
+			author.setLastName(rs.getString("emp_lastname"));
+			ticketHistoryList.setAuthor(author);
 			ticketHistoryList.setAuthorName(rs.getString("u_username"));
 			ticketHistoryList.setComment(rs.getString("tktconv_message"));
 			ticketHistoryList.setCommentedDate(rs.getTimestamp("tktconv_commented_on").toLocalDateTime());
