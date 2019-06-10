@@ -463,20 +463,22 @@ public class TicketDaoImpl implements TicketDao {
 			LOGGER.debug("Fetching ticket with id:{} created by the user with userId: {}", ticketId, createdBy);
 
 			StringBuilder sql = new StringBuilder();
-			sql.append("SELECT ticket.*, department.dept_name, ");
+			sql.append("SELECT ticket.*, emp_firstname, emp_lastname, department.dept_name, ");
 			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
 			sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
 			sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 			sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
 			sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
 			sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+			sql.append("INNER JOIN useremployee ON ue_u_id = tkt_created_by ");
+			sql.append("INNER JOIN employee ON emp_id = ue_emp_id ");
 			sql.append("WHERE tkt_id = :tkt_id && tkt_created_by = :tkt_created_by");
 
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			paramMap.put("tkt_id", ticketId);
 			paramMap.put("tkt_created_by", createdBy);
 
-			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketDetailsRowMapper());
+			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketWithEmployeeDetailsRowMapper());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -677,6 +679,34 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	/* Row Mappers */
+	
+	private static class TicketWithEmployeeDetailsRowMapper implements RowMapper<Ticket> {
+
+		@Override
+		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Ticket ticket = new Ticket();
+			Department department = new Department();
+			Employee createdBy = new Employee();
+			createdBy.setFirstName(rs.getString("emp_firstname"));
+			createdBy.setLastName(rs.getString("emp_lastname"));
+			ticket.setCreatedBy(createdBy);
+			department.setId(rs.getInt("tkt_dept_id"));
+			department.setName(rs.getString("dept_name"));
+			ticket.setCreatedDate(rs.getTimestamp("tkt_created_date").toLocalDateTime());
+			ticket.setDepartment(department);
+			ticket.setDescription(rs.getString("tkt_description"));
+			ticket.setId(rs.getInt("tkt_id"));
+			ticket.setPriority(rs.getString("pty_name"));
+			ticket.setServiceCategory(rs.getString("svctype_name"));
+			ticket.setStatus(rs.getString("sts_name"));
+			ticket.setTitle(rs.getString("tkt_title"));
+			ticket.setType(rs.getString("tkttype_name"));
+			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
+
+			return ticket;
+		}
+
+	}
 
 	private static class TicketDetailsRowMapper implements RowMapper<Ticket> {
 
