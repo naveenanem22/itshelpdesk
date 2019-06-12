@@ -371,10 +371,23 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Fetching tickets assigned to the user with userId: {}, status: {}", assigneeId, status);
 
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT tkt_id, tkt_title, tkt_updated_date, sts_name, pty_name FROM ticket ");
+		sql.append("SELECT tkt_id, tkt_description, tkt_title, tkt_updated_date, sts_name, pty_name, ");
+		sql.append(
+				"e1.emp_firstname AS created_by_firstname, e1.emp_lastname AS created_by_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date, ");
+		sql.append("e2.emp_firstname AS updated_by_firstname, e2.emp_lastname AS updated_by_lastname ");
+		sql.append("FROM ticket ");
 		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+		sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
 		sql.append("INNER JOIN viewticketsassignedtouser ON tkt_id = tatu_tkt_id ");
+		sql.append("INNER JOIN user u1 ON tkt_updated_by = u1.u_id ");
+		sql.append("INNER JOIN useremployee ue1 ON ue1.ue_u_id = u1.u_id ");
+		sql.append("INNER JOIN employee e1 ON e1.emp_id = ue1.ue_emp_id ");
+		sql.append("INNER JOIN user u2 ON tkt_created_by = u2.u_id ");
+		sql.append("INNER JOIN useremployee ue2 ON ue2.ue_u_id = u2.u_id ");
+		sql.append("INNER JOIN employee e2 ON e2.emp_id = ue2.ue_emp_id ");
+		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
 		sql.append("WHERE tatu_assigned_to =:tatu_assigned_to");
 		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
 			sql.append(" && sts_name = :sts_name");
@@ -384,7 +397,7 @@ public class TicketDaoImpl implements TicketDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tatu_assigned_to", assigneeId);
 		paramMap.put("sts_name", status);
-		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapper());
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapperV2());
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
 	}
@@ -740,6 +753,25 @@ public class TicketDaoImpl implements TicketDao {
 		@Override
 		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Ticket ticket = new Ticket();
+			ticket.setId(rs.getInt("tkt_id"));
+			ticket.setStatus(rs.getString("sts_name"));
+			ticket.setTitle(rs.getString("tkt_title"));
+			ticket.setPriority(rs.getString("pty_name"));
+			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
+			return ticket;
+		}
+
+	}
+	
+	private static class TicketsWithEmployeeDetailsRowMapper implements RowMapper<Ticket> {
+
+		@Override
+		public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Ticket ticket = new Ticket();
+			Employee createdBy = new Employee();
+			createdBy.setFirstName(rs.getString("emp_firstname"));
+			createdBy.setLastName(rs.getString("emp_lastname"));
+			ticket.setCreatedBy(createdBy);
 			ticket.setId(rs.getInt("tkt_id"));
 			ticket.setStatus(rs.getString("sts_name"));
 			ticket.setTitle(rs.getString("tkt_title"));
