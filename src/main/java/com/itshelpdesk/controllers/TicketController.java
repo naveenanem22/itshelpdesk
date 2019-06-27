@@ -279,14 +279,14 @@ public class TicketController {
 	public ResponseEntity<Page<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(required = false, name = "status") String status,
 			@RequestParam(required = false, name = "sortBy") String sortBy,
+			@RequestParam(required = false, name = "sortOrder") String sortOrder,
 			@RequestParam(required = false, name = "pageNumber") int pageNumber,
 			@RequestParam(required = false, name = "pageSize") int pageSize) {
 		LOGGER.debug("Fetching tickets created by the user with userName: {}, status: {} and sortBy: {}",
 				userDetails.getUsername(), status, sortBy);
 
-		return new ResponseEntity<Page<Ticket>>(
-				ticketService.getPaginatedTicketsByCreator(userDetails.getUsername(), status, pageNumber, pageSize),
-				HttpStatus.OK);
+		return new ResponseEntity<Page<Ticket>>(ticketService.getPaginatedTicketsByCreator(userDetails.getUsername(),
+				sortBy, sortOrder, status, pageNumber, pageSize), HttpStatus.OK);
 	}
 
 	@GetMapping(path = "/ticketing/tickets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

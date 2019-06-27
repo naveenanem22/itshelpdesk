@@ -31,7 +31,8 @@ public interface TicketService {
 
 	List<Ticket> getTicketsByCreator(String userName, String status);
 
-	Page<Ticket> getPaginatedTicketsByCreator(String userName, String status, int pageNumber, int pageSize);
+	Page<Ticket> getPaginatedTicketsByCreator(String userName, String sortBy, String sortOrder, String status, int pageNumber,
+			int pageSize);
 
 	Ticket getTicket(int ticketId);
 

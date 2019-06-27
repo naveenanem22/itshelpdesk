@@ -425,15 +425,25 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public Page<Ticket> getPaginatedTicketsByCreator(int createdBy, String status, Pageable pageable) {
+	public Page<Ticket> getPaginatedTicketsByCreator(int createdBy, String sortBy, String sortOrder, String status,
+			Pageable pageable) {
 		LOGGER.debug("Fetching tickets created by the user with userId: {}, status: {}", createdBy, status);
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tkt_created_by", createdBy);
 		paramMap.put("sts_name", status);
+		if (sortBy != null && !(sortBy.isEmpty())) {
+			// TO DO Need logic to set order_by value based on the sortBy using Enums
+			paramMap.put("order_by", "tkt_status");
+		}
+
+		if (sortOrder != null && !(sortBy.isEmpty())) {
+			// TO DO Need logic to set sort_order based on the sortOrder using Enums
+			paramMap.put("sort_order", "ASC");
+		}
 		paramMap.put("limit", pageable.getPageSize());
-		//Subtracting 3 to set correct Offset to MySql
-		paramMap.put("offset", pageable.getOffset()-3);
+		// Subtracting 3 to set correct Offset to MySql
+		paramMap.put("offset", pageable.getOffset() - 3);
 		LOGGER.debug("paramMap: {}", paramMap.toString());
 
 		/* Fetching totalRowCount for the purpose of paginating */
@@ -447,9 +457,13 @@ public class TicketDaoImpl implements TicketDao {
 		totalRowCountSql.append("WHERE tkt_created_by =:tkt_created_by");
 		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
 			totalRowCountSql.append(" && sts_name = :sts_name");
+		if (sortBy != null && !(sortBy.isEmpty()))
+			totalRowCountSql.append(" ORDER BY :order_by");
+		if (sortOrder != null && !(sortOrder.isEmpty()))
+			totalRowCountSql.append(" :sort_order");
 		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
 				.intValue();
-		
+
 		LOGGER.debug("Fetched totalRowCount: {}", totalRowCount);
 
 		StringBuilder sql = new StringBuilder();
@@ -459,6 +473,10 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("WHERE tkt_created_by =:tkt_created_by");
 		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
 			sql.append(" && sts_name = :sts_name");
+		if (sortBy != null && !(sortBy.isEmpty()))
+			sql.append(" ORDER BY :order_by");
+		if (sortOrder != null && !(sortOrder.isEmpty()))
+			sql.append(" :sort_order");
 		sql.append(" LIMIT :limit");
 		sql.append(" OFFSET :offset");
 
@@ -491,7 +509,8 @@ public class TicketDaoImpl implements TicketDao {
 			paramMap.put("tkt_id", ticketId);
 			paramMap.put("tkt_created_by", createdBy);
 
-			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketWithEmployeeDetailsRowMapper());
+			tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap,
+					new TicketWithEmployeeDetailsRowMapper());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -695,7 +714,7 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	/* Row Mappers */
-	
+
 	private static class TicketWithEmployeeDetailsRowMapper implements RowMapper<Ticket> {
 
 		@Override
@@ -762,7 +781,7 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
-	
+
 	private static class TicketsWithEmployeeDetailsRowMapper implements RowMapper<Ticket> {
 
 		@Override

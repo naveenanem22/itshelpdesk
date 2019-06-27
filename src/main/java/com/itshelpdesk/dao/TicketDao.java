@@ -17,8 +17,9 @@ public interface TicketDao {
 	List<Ticket> getTicketsByAssignee(int userId, String status);
 
 	List<Ticket> getTicketsByCreator(int userId, String status);
-	
-	Page<Ticket> getPaginatedTicketsByCreator(int userId, String status, Pageable pageable);
+
+	Page<Ticket> getPaginatedTicketsByCreator(int userId, String sortBy, String sortOrder, String status,
+			Pageable pageable);
 
 	Ticket getTicketByAssignee(int ticketId, int userId);
 
@@ -43,7 +44,7 @@ public interface TicketDao {
 	int createTicket(Ticket ticket, int userId);
 
 	boolean createTicketAssignments(List<Ticket> tickets);
-	
+
 	boolean createTicketAssignment(Ticket ticket);
 
 	List<Ticket> getTickets(String status, String priority);
