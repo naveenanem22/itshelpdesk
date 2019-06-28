@@ -432,15 +432,12 @@ public class TicketDaoImpl implements TicketDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tkt_created_by", createdBy);
 		paramMap.put("sts_name", status);
-		if (sortBy != null && !(sortBy.isEmpty())) {
-			// TO DO Need logic to set order_by value based on the sortBy using Enums
-			paramMap.put("order_by", "tkt_status");
-		}
+		if (sortBy != null && !(sortBy.isEmpty()))
+			paramMap.put("order_by", sortBy);
 
-		if (sortOrder != null && !(sortBy.isEmpty())) {
-			// TO DO Need logic to set sort_order based on the sortOrder using Enums
-			paramMap.put("sort_order", "ASC");
-		}
+		if (sortOrder != null && !(sortBy.isEmpty())) 
+			paramMap.put("sort_order", sortOrder);
+		
 		paramMap.put("limit", pageable.getPageSize());
 		// Subtracting 3 to set correct Offset to MySql
 		paramMap.put("offset", pageable.getOffset() - 3);

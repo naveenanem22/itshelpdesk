@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,8 @@ import com.pc.custom.exceptions.InternalServerException;
 import com.pc.model.Attachment;
 import com.pc.model.User;
 import com.pc.services.FileStorageService;
+import com.pc.constants.*;
+import com.pc.constants.SortOrder;
 
 @Service(value = "ticketServiceImpl")
 public class TicketServiceImpl implements TicketService {
@@ -282,7 +285,14 @@ public class TicketServiceImpl implements TicketService {
 
 		LOGGER.debug("Creating pageable object with pageNumber: {} and size: {}", pageNumber, pageSize);
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-		
+
+		LOGGER.debug("Validating sortBy and sortOrder");
+		LOGGER.debug("Received sortBy: {}, sortOrder: {}", sortBy, sortOrder);
+
+		sortOrder = SortOrder.getMatchingSortOrder(sortOrder).getValue();
+		sortBy = SortColumn.getMatchingSortColumn(sortBy).getValue();
+		LOGGER.debug("Processed sortOrder: {}, sortBy: {}", sortOrder, sortBy);
+
 		LOGGER.debug("Fetching tickets created by the user with userId: {}", user.getId());
 		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTicketsByCreator(user.getId(), sortBy, sortOrder, status,
 				pageable);
@@ -299,6 +309,34 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Fetching ticket details created by the user with id: {}", user.getId());
 		Ticket ticket = ticketDao.getTicketByCreator(ticketId, user.getId());
 		return ticket;
+	}
+
+}
+
+enum SortColumn {
+	TICKETID("ticketId", "tkt_id"), TICKETUPDATEDDATE("tktUpdatedDate", "tkt_updated_date"),
+	TICKETTITLE("ticketTitle", "tkt_title"), TICKETSTATUS("ticketStatus", "sts_name");
+
+	private final String key;
+	private final String value;
+
+	SortColumn(String key, String value) {
+		this.key = key;
+		this.value = value;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public static SortColumn getMatchingSortColumn(String sortBy) {
+		return Stream.of(SortColumn.values()).filter(e -> {
+			return e.getKey().equalsIgnoreCase(sortBy);
+		}).findFirst().get();
 	}
 
 }
