@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Repository;
 
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
+import com.pc.constants.SortOrder;
 import com.pc.custom.exceptions.InternalServerException;
 import com.pc.custom.exceptions.RecordNotFoundException;
 import com.pc.model.Attachment;
@@ -432,12 +435,13 @@ public class TicketDaoImpl implements TicketDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tkt_created_by", createdBy);
 		paramMap.put("sts_name", status);
-		if (sortBy != null && !(sortBy.isEmpty()))
-			paramMap.put("order_by", sortBy);
-
-		if (sortOrder != null && !(sortBy.isEmpty())) 
-			paramMap.put("sort_order", sortOrder);
-		
+		/*
+		 * if (sortBy != null && !(sortBy.isEmpty())) paramMap.put("order_by",
+		 * SortColumn.getMatchingSortColumn(sortBy).getValue());
+		 * 
+		 * if (sortOrder != null && !(sortBy.isEmpty())) paramMap.put("sort_order",
+		 * SortOrder.getMatchingSortOrder(sortOrder).getValue());
+		 */
 		paramMap.put("limit", pageable.getPageSize());
 		// Subtracting 3 to set correct Offset to MySql
 		paramMap.put("offset", pageable.getOffset() - 3);
@@ -454,10 +458,11 @@ public class TicketDaoImpl implements TicketDao {
 		totalRowCountSql.append("WHERE tkt_created_by =:tkt_created_by");
 		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
 			totalRowCountSql.append(" && sts_name = :sts_name");
-		if (sortBy != null && !(sortBy.isEmpty()))
-			totalRowCountSql.append(" ORDER BY :order_by");
-		if (sortOrder != null && !(sortOrder.isEmpty()))
-			totalRowCountSql.append(" :sort_order");
+		/*
+		 * if (sortBy != null && !(sortBy.isEmpty()))
+		 * totalRowCountSql.append(" ORDER BY :order_by"); if (sortOrder != null &&
+		 * !(sortOrder.isEmpty())) totalRowCountSql.append(" :sort_order");
+		 */
 		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
 				.intValue();
 
@@ -470,10 +475,25 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("WHERE tkt_created_by =:tkt_created_by");
 		if (status != null && !(status.isEmpty()) && !(status.equalsIgnoreCase("all")))
 			sql.append(" && sts_name = :sts_name");
-		if (sortBy != null && !(sortBy.isEmpty()))
-			sql.append(" ORDER BY :order_by");
-		if (sortOrder != null && !(sortOrder.isEmpty()))
-			sql.append(" :sort_order");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETID.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY tkt_id");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETSTATUS.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY sts_name");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETTITLE.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY tkt_title");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETUPDATEDDATE.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY tkt_updated_date");
+
+		if (sortOrder != null && !(sortOrder.isEmpty()) && SortOrder.contains(sortOrder)
+				&& SortOrder.ASCENDING.getKey().equalsIgnoreCase(sortOrder))
+			sql.append(" ASC");
+		if (sortOrder != null && !(sortOrder.isEmpty()) && SortOrder.contains(sortOrder)
+				&& SortOrder.DESCENDING.getKey().equalsIgnoreCase(sortOrder))
+			sql.append(" DESC");
 		sql.append(" LIMIT :limit");
 		sql.append(" OFFSET :offset");
 
@@ -848,6 +868,30 @@ public class TicketDaoImpl implements TicketDao {
 			return ticketHistoryList;
 		}
 
+	}
+
+}
+
+enum SortColumn {
+	TICKETID("ticketId"), TICKETUPDATEDDATE("ticketUpdatedDate"), TICKETTITLE("ticketTitle"),
+	TICKETSTATUS("ticketStatus");
+
+	private final String key;
+
+	SortColumn(String key) {
+		this.key = key;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public static boolean contains(String sortBy) {
+		List<SortColumn> matchedColumns = Stream.of(SortColumn.values()).filter(item -> {
+			return item.getKey().equalsIgnoreCase(sortBy);
+		}).collect(Collectors.toList());
+
+		return !matchedColumns.isEmpty();
 	}
 
 }
