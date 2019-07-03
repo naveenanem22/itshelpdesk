@@ -280,12 +280,6 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Creating pageable object with pageNumber: {} and size: {}", pageNumber, pageSize);
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-		/*LOGGER.debug("Validating sortBy and sortOrder");
-		LOGGER.debug("Received sortBy: {}, sortOrder: {}", sortBy, sortOrder);
-
-		sortOrder = SortOrder.getMatchingSortOrder(sortOrder).getValue();
-		sortBy = SortColumn.getMatchingSortColumn(sortBy).getValue();
-		LOGGER.debug("Processed sortOrder: {}, sortBy: {}", sortOrder, sortBy);*/
 
 		LOGGER.debug("Fetching tickets created by the user with userId: {}", user.getId());
 		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTicketsByCreator(user.getId(), sortBy, sortOrder, status,

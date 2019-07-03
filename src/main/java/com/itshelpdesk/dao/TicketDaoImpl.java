@@ -435,16 +435,9 @@ public class TicketDaoImpl implements TicketDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tkt_created_by", createdBy);
 		paramMap.put("sts_name", status);
-		/*
-		 * if (sortBy != null && !(sortBy.isEmpty())) paramMap.put("order_by",
-		 * SortColumn.getMatchingSortColumn(sortBy).getValue());
-		 * 
-		 * if (sortOrder != null && !(sortBy.isEmpty())) paramMap.put("sort_order",
-		 * SortOrder.getMatchingSortOrder(sortOrder).getValue());
-		 */
 		paramMap.put("limit", pageable.getPageSize());
-		// Subtracting 3 to set correct Offset to MySql
-		paramMap.put("offset", pageable.getOffset() - 3);
+		// Subtracting pageSize to set correct Offset to MySql
+		paramMap.put("offset", pageable.getOffset() - pageable.getPageSize());
 		LOGGER.debug("paramMap: {}", paramMap.toString());
 
 		/* Fetching totalRowCount for the purpose of paginating */
