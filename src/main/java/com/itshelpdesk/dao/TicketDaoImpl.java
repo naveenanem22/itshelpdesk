@@ -91,19 +91,19 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
 	}
-	
+
 	@Override
 	public Page<Ticket> getPaginatedTickets(String sortBy, String sortOrder, String status, Pageable pageable,
 			String priority) {
 		LOGGER.debug("Fetching tickets");
-		
+
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("sts_name", status);
 		paramMap.put("limit", pageable.getPageSize());
 		// Subtracting pageSize to set correct Offset to MySql
 		paramMap.put("offset", pageable.getOffset() - pageable.getPageSize());
 		LOGGER.debug("paramMap: {}", paramMap.toString());
-		
+
 		/* Fetching totalRowCount for the purpose of paginating */
 		int totalRowCount;
 		LOGGER.debug("Fetching totalRowCount for the purpose of paginating.");
@@ -121,14 +121,14 @@ public class TicketDaoImpl implements TicketDao {
 		totalRowCountSql.append("INNER JOIN useremployee ue2 ON ue2.ue_u_id = u2.u_id ");
 		totalRowCountSql.append("INNER JOIN employee e2 ON e2.emp_id = ue2.ue_emp_id ");
 		totalRowCountSql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
-		totalRowCountSql.append("WHERE sts_name=:sts_name");
-
+		if (status != null && !(status.isEmpty()))
+			totalRowCountSql.append("WHERE sts_name=:sts_name");
 
 		LOGGER.debug("Fetching the tickets count using query: {}", totalRowCountSql.toString());
 		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
 				.intValue();
 		LOGGER.debug("Fetched totalRowCount: {}", totalRowCount);
-		
+
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT tkt_id, tkt_description, tkt_title, tkt_updated_date, sts_name, pty_name, ");
 		sql.append(
@@ -146,7 +146,8 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("INNER JOIN useremployee ue2 ON ue2.ue_u_id = u2.u_id ");
 		sql.append("INNER JOIN employee e2 ON e2.emp_id = ue2.ue_emp_id ");
 		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
-		sql.append("WHERE sts_name=:sts_name");
+		if (status != null && !(status.isEmpty()))
+			sql.append("WHERE sts_name=:sts_name");
 		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
 				&& SortColumn.TICKETID.getKey().equalsIgnoreCase(sortBy))
 			sql.append(" ORDER BY tkt_id");
@@ -946,8 +947,6 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
-
-	
 
 }
 
