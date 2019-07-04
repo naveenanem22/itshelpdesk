@@ -26,6 +26,8 @@ public interface TicketService {
 	boolean assignTicketByManager(Ticket ticket, String userName);
 
 	List<Ticket> getTickets(String status, String priority);
+	Page<Ticket> getPaginatedTickets(String sortBy, String sortOrder, String status, int pageNumber,
+			int pageSize, String priority);
 
 	List<Ticket> getTicketsByAssignee(String userName, String status);
 

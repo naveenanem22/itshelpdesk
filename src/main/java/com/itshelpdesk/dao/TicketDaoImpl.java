@@ -91,6 +91,90 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("Tickets fetched: " + tickets.toString());
 		return tickets;
 	}
+	
+	@Override
+	public Page<Ticket> getPaginatedTickets(String sortBy, String sortOrder, String status, Pageable pageable,
+			String priority) {
+		LOGGER.debug("Fetching tickets");
+		
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("sts_name", status);
+		paramMap.put("limit", pageable.getPageSize());
+		// Subtracting pageSize to set correct Offset to MySql
+		paramMap.put("offset", pageable.getOffset() - pageable.getPageSize());
+		LOGGER.debug("paramMap: {}", paramMap.toString());
+		
+		/* Fetching totalRowCount for the purpose of paginating */
+		int totalRowCount;
+		LOGGER.debug("Fetching totalRowCount for the purpose of paginating.");
+
+		StringBuilder totalRowCountSql = new StringBuilder();
+		totalRowCountSql.append("SELECT COUNT(*) AS count FROM ticket ");
+		totalRowCountSql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		totalRowCountSql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		totalRowCountSql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+		totalRowCountSql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+		totalRowCountSql.append("INNER JOIN user u1 ON tkt_updated_by = u1.u_id ");
+		totalRowCountSql.append("INNER JOIN useremployee ue1 ON ue1.ue_u_id = u1.u_id ");
+		totalRowCountSql.append("INNER JOIN employee e1 ON e1.emp_id = ue1.ue_emp_id ");
+		totalRowCountSql.append("INNER JOIN user u2 ON tkt_created_by = u2.u_id ");
+		totalRowCountSql.append("INNER JOIN useremployee ue2 ON ue2.ue_u_id = u2.u_id ");
+		totalRowCountSql.append("INNER JOIN employee e2 ON e2.emp_id = ue2.ue_emp_id ");
+		totalRowCountSql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+		totalRowCountSql.append("WHERE sts_name=:sts_name");
+
+
+		LOGGER.debug("Fetching the tickets count using query: {}", totalRowCountSql.toString());
+		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
+				.intValue();
+		LOGGER.debug("Fetched totalRowCount: {}", totalRowCount);
+		
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT tkt_id, tkt_description, tkt_title, tkt_updated_date, sts_name, pty_name, ");
+		sql.append(
+				"e1.emp_firstname AS created_by_firstname, e1.emp_lastname AS created_by_lastname, dept_name, svctype_name, tkttype_name, tkt_created_date, ");
+		sql.append("e2.emp_firstname AS updated_by_firstname, e2.emp_lastname AS updated_by_lastname ");
+		sql.append("FROM ticket ");
+		sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
+		sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
+		sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
+		sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
+		sql.append("INNER JOIN user u1 ON tkt_updated_by = u1.u_id ");
+		sql.append("INNER JOIN useremployee ue1 ON ue1.ue_u_id = u1.u_id ");
+		sql.append("INNER JOIN employee e1 ON e1.emp_id = ue1.ue_emp_id ");
+		sql.append("INNER JOIN user u2 ON tkt_created_by = u2.u_id ");
+		sql.append("INNER JOIN useremployee ue2 ON ue2.ue_u_id = u2.u_id ");
+		sql.append("INNER JOIN employee e2 ON e2.emp_id = ue2.ue_emp_id ");
+		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+		sql.append("WHERE sts_name=:sts_name");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETID.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY tkt_id");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETSTATUS.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY sts_name");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETTITLE.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY tkt_title");
+		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
+				&& SortColumn.TICKETUPDATEDDATE.getKey().equalsIgnoreCase(sortBy))
+			sql.append(" ORDER BY tkt_updated_date");
+
+		if (sortOrder != null && !(sortOrder.isEmpty()) && SortOrder.contains(sortOrder)
+				&& SortOrder.ASCENDING.getKey().equalsIgnoreCase(sortOrder))
+			sql.append(" ASC");
+		if (sortOrder != null && !(sortOrder.isEmpty()) && SortOrder.contains(sortOrder)
+				&& SortOrder.DESCENDING.getKey().equalsIgnoreCase(sortOrder))
+			sql.append(" DESC");
+		sql.append(" LIMIT :limit");
+		sql.append(" OFFSET :offset");
+
+		LOGGER.debug("Fetching the tickets using query: {}", sql.toString());
+
+		List<Ticket> tickets = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new TicketsRowMapperV2());
+		LOGGER.debug("Tickets fetched: " + tickets.toString());
+		return new PageImpl<>(tickets, pageable, totalRowCount);
+	}
 
 	@Override
 	public Ticket getTicket(int id) {
@@ -862,6 +946,8 @@ public class TicketDaoImpl implements TicketDao {
 		}
 
 	}
+
+	
 
 }
 

@@ -114,9 +114,13 @@ public class TicketController {
 	}
 
 	@GetMapping(path = "/ticket-management/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
+	public ResponseEntity<Page<Ticket>> getTickets(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(value = "status", required = false) String statusName,
-			@RequestParam(value = "priority", required = false) String priority) {
+			@RequestParam(value = "priority", required = false) String priority,
+			@RequestParam(required = false, name = "sortBy") String sortBy,
+			@RequestParam(required = false, name = "sortOrder") String sortOrder,
+			@RequestParam(required = false, name = "pageNumber") int pageNumber,
+			@RequestParam(required = false, name = "pageSize") int pageSize) {
 		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
 
 		// Setting empty fields for searching if they are not present in the request
@@ -129,7 +133,9 @@ public class TicketController {
 		else
 			LOGGER.debug("Search Criteria - priority: {}", priority);
 
-		return new ResponseEntity<List<Ticket>>(ticketService.getTickets(statusName, priority), HttpStatus.OK);
+		return new ResponseEntity<Page<Ticket>>(
+				ticketService.getPaginatedTickets(sortBy, sortOrder, statusName, pageNumber, pageSize, priority),
+				HttpStatus.OK);
 	}
 
 	/********************** ticket-management URI END ***********************/
