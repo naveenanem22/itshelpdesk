@@ -40,6 +40,13 @@ public class DashboardController {
 		return new ResponseEntity<List<BarChartDataItem>>(dashboardService.fetchTicketCountStatusAndMonthWise(),
 				HttpStatus.OK);
 	}
+	
+	@GetMapping(path = "/lineGraph", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<BarChartDataItem>> getLineGraph(@AuthenticationPrincipal UserDetails userDetails) {
+		LOGGER.debug("Fetching BarChart details");
+		return new ResponseEntity<List<BarChartDataItem>>(dashboardService.fetchTicketCountStatusAndMonthWise(),
+				HttpStatus.OK);
+	}
 
 	@GetMapping(path = "/pieChart", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<PieChartDataItem>> getPieChart(@AuthenticationPrincipal UserDetails userDetails) {
