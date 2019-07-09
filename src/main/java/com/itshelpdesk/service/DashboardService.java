@@ -8,6 +8,7 @@ import com.itshelpdesk.model.PieChartDataItem;
 
 public interface DashboardService {
 	Integer fetchCountOfTicketsInLastHourByStatus(String ticketStatus);
+	Integer fetchTotalTicketCountFromStart();
 	List<BarChartDataItem> fetchTicketCountStatusAndMonthWise();
 	List<PieChartDataItem> fetchDepartmentWisePayload();
 	

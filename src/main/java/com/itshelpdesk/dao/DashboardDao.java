@@ -11,5 +11,7 @@ public interface DashboardDao {
 	List<BarChartDataItem> fetchTicketCountStatusAndMonthWise();
 
 	List<PieChartDataItem> fetchDepartmentWisePayload();
+	
+	Integer fetchTotalTicketCountFromStart();
 
 }

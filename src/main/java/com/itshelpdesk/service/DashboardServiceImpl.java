@@ -26,14 +26,19 @@ public class DashboardServiceImpl implements DashboardService {
 	}
 
 	@Override
+	public Integer fetchTotalTicketCountFromStart() {
+		return dashBoardDao.fetchTotalTicketCountFromStart();
+	}
+
+	@Override
 	@Transactional(readOnly = true)
 	public List<BarChartDataItem> fetchTicketCountStatusAndMonthWise() {
 		return dashBoardDao.fetchTicketCountStatusAndMonthWise();
 	}
-	
+
 	@Override
 	@Transactional(readOnly = true)
-	public List<PieChartDataItem> fetchDepartmentWisePayload(){
+	public List<PieChartDataItem> fetchDepartmentWisePayload() {
 		return dashBoardDao.fetchDepartmentWisePayload();
 	}
 

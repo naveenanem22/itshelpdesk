@@ -64,5 +64,16 @@ public class DashboardController {
 		lastHourDataByStatus.put("ticketCount", count);
 		return new ResponseEntity<Map<String, Integer>>(lastHourDataByStatus, HttpStatus.OK);
 	}
+	
+	@GetMapping(path = "/totalTicketCount")
+	public ResponseEntity<Map<String, Integer>> getTotalTicketCountFromStart(
+			@AuthenticationPrincipal UserDetails userDetails) {
+		LOGGER.debug("Fetching Total ticket count from the start.");
+		Integer count = dashboardService.fetchTotalTicketCountFromStart();
+		LOGGER.debug("Fetched ticketcount: {}", count);
+		Map<String, Integer> totalTicketCount = new HashMap<String, Integer>();
+		totalTicketCount.put("ticketCount", count);
+		return new ResponseEntity<Map<String, Integer>>(totalTicketCount, HttpStatus.OK);
+	}
 
 }

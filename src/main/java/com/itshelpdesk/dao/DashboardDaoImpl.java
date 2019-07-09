@@ -65,6 +65,18 @@ public class DashboardDaoImpl implements DashboardDao {
 	}
 
 	@Override
+	public Integer fetchTotalTicketCountFromStart() {
+		LOGGER.debug("Fetching total-ticket-count since start");
+		StringBuilder sql = new StringBuilder();
+		Integer count;
+
+		sql.append("SELECT * FROM viewtotalticketcountfromstart");
+		count = jdbcTemplate.queryForObject(sql.toString(), new TotalTicketCountRowMapper());
+		LOGGER.debug("Total ticket count since start: {}", count);
+		return count;
+	}
+
+	@Override
 	public List<BarChartDataItem> fetchTicketCountStatusAndMonthWise() {
 		LOGGER.debug("Fetching ticket-count by month and status wise");
 		StringBuilder sql = new StringBuilder();
@@ -209,6 +221,16 @@ public class DashboardDaoImpl implements DashboardDao {
 		@Override
 		public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return new Integer(rs.getInt("new_ticket_count_last_hour"));
+
+		}
+
+	}
+
+	private class TotalTicketCountRowMapper implements RowMapper<Integer> {
+
+		@Override
+		public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return new Integer(rs.getInt("total_ticket_count"));
 
 		}
 
