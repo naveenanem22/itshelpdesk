@@ -226,15 +226,19 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public Page<Ticket> getPaginatedTickets(String sortBy, String sortOrder, String status, int pageNumber,
+	public Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe,String sortBy, String sortOrder, String status, int pageNumber,
 			int pageSize, String priority) {
+		
+		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		User user = userService.getUserByUserName(userName);
+		LOGGER.debug("Fetched user: {}", user);
 
 		LOGGER.debug("Fetching tickets");
 
 		LOGGER.debug("Creating pageable object with pageNumber: {} and size: {}", pageNumber, pageSize);
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTickets(sortBy, sortOrder, status, pageable, priority);
+		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTickets(user.getId(), createdByMe, sortBy, sortOrder, status, pageable, priority);
 
 		LOGGER.debug("Tickets fetched: {}", paginatedTickets.toString());
 		return paginatedTickets;

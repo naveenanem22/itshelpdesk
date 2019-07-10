@@ -49,7 +49,7 @@ public interface TicketDao {
 
 	List<Ticket> getTickets(String status, String priority);
 
-	Page<Ticket> getPaginatedTickets(String sortBy, String sortOrder, String status, Pageable pageable,
+	Page<Ticket> getPaginatedTickets(int createdBy, boolean createdByMe, String sortBy, String sortOrder, String status, Pageable pageable,
 			String priority);
 
 	Ticket getTicket(int id);

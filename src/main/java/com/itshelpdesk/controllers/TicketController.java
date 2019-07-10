@@ -120,7 +120,8 @@ public class TicketController {
 			@RequestParam(required = false, name = "sortBy") String sortBy,
 			@RequestParam(required = false, name = "sortOrder") String sortOrder,
 			@RequestParam(required = false, name = "pageNumber") int pageNumber,
-			@RequestParam(required = false, name = "pageSize") int pageSize) {
+			@RequestParam(required = false, name = "pageSize") int pageSize,
+			@RequestParam(required = false, name = "createdByMe") boolean createdByMe) {
 		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
 
 		// Setting empty fields for searching if they are not present in the request
@@ -134,7 +135,7 @@ public class TicketController {
 			LOGGER.debug("Search Criteria - priority: {}", priority);
 
 		return new ResponseEntity<Page<Ticket>>(
-				ticketService.getPaginatedTickets(sortBy, sortOrder, statusName, pageNumber, pageSize, priority),
+				ticketService.getPaginatedTickets(userDetails.getUsername(), createdByMe, sortBy, sortOrder, statusName, pageNumber, pageSize, priority),
 				HttpStatus.OK);
 	}
 

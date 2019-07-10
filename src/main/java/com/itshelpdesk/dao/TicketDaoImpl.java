@@ -93,8 +93,8 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public Page<Ticket> getPaginatedTickets(String sortBy, String sortOrder, String status, Pageable pageable,
-			String priority) {
+	public Page<Ticket> getPaginatedTickets(int createdBy, boolean createdByMe, String sortBy, String sortOrder,
+			String status, Pageable pageable, String priority) {
 		LOGGER.debug("Fetching tickets");
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
@@ -103,6 +103,8 @@ public class TicketDaoImpl implements TicketDao {
 		// Subtracting pageSize to set correct Offset to MySql
 		paramMap.put("offset", pageable.getOffset() - pageable.getPageSize());
 		LOGGER.debug("paramMap: {}", paramMap.toString());
+
+		paramMap.put("tkt_created_by", createdBy);
 
 		/* Fetching totalRowCount for the purpose of paginating */
 		int totalRowCount;
@@ -123,6 +125,8 @@ public class TicketDaoImpl implements TicketDao {
 		totalRowCountSql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
 		if (status != null && !(status.isEmpty()))
 			totalRowCountSql.append("WHERE sts_name=:sts_name");
+		if (createdByMe)
+			totalRowCountSql.append(" && tkt_created_by =:tkt_created_by");
 
 		LOGGER.debug("Fetching the tickets count using query: {}", totalRowCountSql.toString());
 		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
@@ -148,6 +152,8 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
 		if (status != null && !(status.isEmpty()))
 			sql.append("WHERE sts_name=:sts_name");
+		if (createdByMe)
+			sql.append(" && tkt_created_by =:tkt_created_by");
 		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
 				&& SortColumn.TICKETID.getKey().equalsIgnoreCase(sortBy))
 			sql.append(" ORDER BY tkt_id");
