@@ -34,6 +34,7 @@ public class ProfileDaoImpl implements ProfileDao {
 		sql.append("INNER JOIN user ON ue_u_id = u_id ");
 		sql.append("INNER JOIN employeeaddress ON empaddr_emp_id = emp_id ");
 		sql.append("INNER JOIN employeecontact ON ec_emp_id = emp_id ");
+		sql.append("INNER JOIN aboutme ON emp_id = abm_emp_id ");
 		sql.append("INNER JOIN individualaddress ON empaddr_ia_id = ia_id ");
 		sql.append("WHERE u_id=:u_id && emp_id=:emp_id");
 
@@ -59,6 +60,9 @@ public class ProfileDaoImpl implements ProfileDao {
 			Employee employee = new Employee();
 			employee.setFirstName(rs.getString("emp_firstname"));
 			employee.setLastName(rs.getString("emp_lastname"));
+			employee.setAboutMe(rs.getString("abm_aboutme_text"));
+			employee.setDesignation(rs.getString("emp_designation"));
+			
 
 			ContactInfo contactInfo = new ContactInfo();
 			contactInfo.setHomePhone(rs.getString("ec_home_phone"));
