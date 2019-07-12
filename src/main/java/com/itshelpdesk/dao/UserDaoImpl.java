@@ -32,7 +32,12 @@ public class UserDaoImpl implements UserDao {
 		LOGGER.debug("Fetching user for the given UserName: {}", userName);
 		StringBuilder sql = new StringBuilder();
 
-		sql.append("SELECT * FROM user WHERE u_username = ?");
+		//sql.append("SELECT * FROM user WHERE u_username = ?");
+		sql.append("SELECT * FROM user ");
+		sql.append("INNER JOIN useremployee ON ue_u_id = u_id ");
+		sql.append("INNER JOIN employee ON emp_id = ue_emp_id ");
+		sql.append("WHERE u_username =?");
+		
 
 		User user = jdbcTemplate.queryForObject(sql.toString(), new Object[] { userName }, new UserRowMapper());
 
@@ -66,6 +71,7 @@ public class UserDaoImpl implements UserDao {
 			User user = new User();
 			user.setId(rs.getInt("u_id"));
 			user.setUserName(rs.getString("u_username"));
+			user.setEmployeeId(rs.getInt("emp_id"));
 			return user;
 		}
 

@@ -1,6 +1,5 @@
 package com.itshelpdesk.security.controllers;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.itshelpdesk.security.jwt.JwtTokenProvider;
 import com.itshelpdesk.security.service.CustomUserDetailsService;
+import com.itshelpdesk.service.UserService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,36 +30,42 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+	@Autowired
+	AuthenticationManager authenticationManager;
 
-    @Autowired
-    JwtTokenProvider jwtTokenProvider;
+	@Autowired
+	JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    @Qualifier("customUserDetailsService")
-    UserDetailsService customUserDetailsService;
+	@Autowired
+	@Qualifier("customUserDetailsService")
+	UserDetailsService customUserDetailsService;
+	
+	@Autowired
+	@Qualifier("userServiceImpl")
+	UserService userService;
 
-    @PostMapping("/login")
-    public ResponseEntity<Map<Object, Object>> signin(@RequestBody AuthenticationRequest data) {
+	@PostMapping("/login")
+	public ResponseEntity<Map<Object, Object>> signin(@RequestBody AuthenticationRequest data) {
 
-        try {
-            String username = data.getUsername();
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
-            GrantedAuthority[] grantedAuthorities = new GrantedAuthority[5];
-            authentication.getAuthorities().toArray(grantedAuthorities);            
-            String token = jwtTokenProvider.createToken(username, this.customUserDetailsService.loadUserByUsername(username).getAuthorities().stream()
-            		.map(role -> role.getAuthority())
-            		.collect(Collectors.toList()));
+		try {
+			String username = data.getUsername();
+			Authentication authentication = authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
+			GrantedAuthority[] grantedAuthorities = new GrantedAuthority[5];
+			authentication.getAuthorities().toArray(grantedAuthorities);
+			String token = jwtTokenProvider.createToken(username,
+					this.customUserDetailsService.loadUserByUsername(username).getAuthorities().stream()
+							.map(role -> role.getAuthority()).collect(Collectors.toList()));
 
-            Map<Object, Object> model = new HashMap<>();
-            model.put("username", username);
-            model.put("token", token);
-            model.put("role", grantedAuthorities[0].toString());
-            model.put("employeeId", 112234);
-            return ok(model);
-        } catch (AuthenticationException e) {
-            throw new BadCredentialsException("Invalid username/password supplied");
-        }
-    }
+			Map<Object, Object> model = new HashMap<>();
+			model.put("username", username);
+			model.put("token", token);
+			model.put("role", grantedAuthorities[0].toString());
+			// TO DO Need to call userservice to fetch profile related data
+			model.put("employeeId", userService.getUserByUserName(username).getEmployeeId());
+			return ok(model);
+		} catch (AuthenticationException e) {
+			throw new BadCredentialsException("Invalid username/password supplied");
+		}
+	}
 }

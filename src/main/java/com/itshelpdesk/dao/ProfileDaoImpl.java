@@ -32,10 +32,10 @@ public class ProfileDaoImpl implements ProfileDao {
 		sql.append("SELECT * FROM employee ");
 		sql.append("INNER JOIN useremployee ON ue_emp_id = emp_id ");
 		sql.append("INNER JOIN user ON ue_u_id = u_id ");
-		sql.append("INNER JOIN employeeaddress ON empaddr_emp_id = emp_id ");
-		sql.append("INNER JOIN employeecontact ON ec_emp_id = emp_id ");
-		sql.append("INNER JOIN aboutme ON emp_id = abm_emp_id ");
-		sql.append("INNER JOIN individualaddress ON empaddr_ia_id = ia_id ");
+		sql.append("LEFT JOIN employeeaddress ON empaddr_emp_id = emp_id ");
+		sql.append("LEFT JOIN employeecontact ON ec_emp_id = emp_id ");
+		sql.append("LEFT JOIN aboutme ON emp_id = abm_emp_id ");
+		sql.append("LEFT JOIN individualaddress ON empaddr_ia_id = ia_id ");
 		sql.append("WHERE u_id=:u_id && emp_id=:emp_id");
 
 		LOGGER.debug("Fetching employee details with the query: {}", sql.toString());
@@ -43,6 +43,8 @@ public class ProfileDaoImpl implements ProfileDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("u_id", userId);
 		paramMap.put("emp_id", employeeId);
+		
+		LOGGER.debug("Parammap: {}", paramMap);
 
 		List<Employee> employees = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new EmployeeRowMapper());
 
