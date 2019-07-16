@@ -1,7 +1,9 @@
 package com.itshelpdesk.dao;
 
+import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ public class ProfileDaoImpl implements ProfileDao {
 		sql.append("LEFT JOIN aboutme ON emp_id = abm_emp_id ");
 		sql.append("LEFT JOIN individualaddress ON empaddr_ia_id = ia_id ");
 		sql.append("LEFT JOIN employeecredits ON ecr_emp_id = emp_id ");
+		sql.append("LEFT JOIN employeeprofilepic ON eprp_emp_id = emp_id ");
 		sql.append("WHERE u_id=:u_id && emp_id=:emp_id");
 
 		LOGGER.debug("Fetching employee details with the query: {}", sql.toString());
@@ -92,6 +95,8 @@ public class ProfileDaoImpl implements ProfileDao {
 			employee.setAboutMe(rs.getString("abm_aboutme_text"));
 			employee.setDesignation(rs.getString("emp_designation"));
 			employee.setCredits(rs.getInt("ecr_credits"));
+			Blob blob = rs.getBlob("eprp_img_file");
+			employee.setBase64ProfilePic(Base64.getEncoder().encodeToString(blob.getBytes(1, (int) blob.length())));
 
 			ContactInfo contactInfo = new ContactInfo();
 			contactInfo.setHomePhone(rs.getString("ec_home_phone"));
@@ -121,6 +126,9 @@ public class ProfileDaoImpl implements ProfileDao {
 			badge.setId(rs.getInt("bdg_id"));
 			badge.setDescription(rs.getString("bdg_desc"));
 			badge.setTitle(rs.getString("bdg_title"));
+			Blob blob = rs.getBlob("bdg_img");
+			badge.setBase64Image(Base64.getEncoder().encodeToString(blob.getBytes(1, (int) blob.length())));
+			
 			return badge;
 		}
 
