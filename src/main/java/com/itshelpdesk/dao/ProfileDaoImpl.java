@@ -14,11 +14,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.pc.custom.exceptions.InternalServerException;
+import com.pc.model.Badge;
 import com.pmt.model.ContactInfo;
 import com.pmt.model.Employee;
 import com.pmt.model.IndividualAddress;
 
-@Repository(value="profileDaoImpl")
+@Repository(value = "profileDaoImpl")
 public class ProfileDaoImpl implements ProfileDao {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProfileDaoImpl.class);
@@ -36,6 +37,7 @@ public class ProfileDaoImpl implements ProfileDao {
 		sql.append("LEFT JOIN employeecontact ON ec_emp_id = emp_id ");
 		sql.append("LEFT JOIN aboutme ON emp_id = abm_emp_id ");
 		sql.append("LEFT JOIN individualaddress ON empaddr_ia_id = ia_id ");
+		sql.append("LEFT JOIN employeecredits ON ecr_emp_id = emp_id ");
 		sql.append("WHERE u_id=:u_id && emp_id=:emp_id");
 
 		LOGGER.debug("Fetching employee details with the query: {}", sql.toString());
@@ -43,16 +45,41 @@ public class ProfileDaoImpl implements ProfileDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("u_id", userId);
 		paramMap.put("emp_id", employeeId);
-		
+
 		LOGGER.debug("Parammap: {}", paramMap);
 
 		List<Employee> employees = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new EmployeeRowMapper());
 
-		if (employees.size() == 1)
-			return employees.get(0);
+		if (employees.size() == 1) {
+			Employee employee = employees.get(0);
+			LOGGER.debug("Fetching badges for the employee");
+			employee.setBadges(getEmployeeBadges(employeeId, userId));
+			return employee;
+		}
+
 		else
 			throw new InternalServerException(
 					"Unexpected exception occured while fetching employee details with id: " + employeeId);
+	}
+
+	@Override
+	public List<Badge> getEmployeeBadges(int employeeId, int userId) {
+		LOGGER.debug("Fetching badges for the employeeId: {}", employeeId);
+		StringBuilder sql = new StringBuilder();
+		sql.append("SELECT * FROM employeebadge ");
+		sql.append("INNER JOIN employee ON emp_id = eb_emp_id ");
+		sql.append("INNER JOIN badge ON eb_bdg_id  = bdg_id ");
+		sql.append("WHERE emp_id=:emp_id");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("emp_id", employeeId);
+
+		LOGGER.debug("paramMap: {}", paramMap);
+		LOGGER.debug("Fetching Employee-Badges list with the query: {}", sql);
+
+		List<Badge> badges = namedParameterJdbcTemplate.query(sql.toString(), paramMap, new BadgeRowMapper());
+
+		return badges;
 	}
 
 	private static class EmployeeRowMapper implements RowMapper<Employee> {
@@ -64,7 +91,7 @@ public class ProfileDaoImpl implements ProfileDao {
 			employee.setLastName(rs.getString("emp_lastname"));
 			employee.setAboutMe(rs.getString("abm_aboutme_text"));
 			employee.setDesignation(rs.getString("emp_designation"));
-			
+			employee.setCredits(rs.getInt("ecr_credits"));
 
 			ContactInfo contactInfo = new ContactInfo();
 			contactInfo.setHomePhone(rs.getString("ec_home_phone"));
@@ -84,6 +111,19 @@ public class ProfileDaoImpl implements ProfileDao {
 
 			return employee;
 		}
+	}
+
+	private static class BadgeRowMapper implements RowMapper<Badge> {
+
+		@Override
+		public Badge mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Badge badge = new Badge();
+			badge.setId(rs.getInt("bdg_id"));
+			badge.setDescription(rs.getString("bdg_desc"));
+			badge.setTitle(rs.getString("bdg_title"));
+			return badge;
+		}
+
 	}
 
 }
