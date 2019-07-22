@@ -358,7 +358,7 @@ public class TicketDaoImpl implements TicketDao {
 	public boolean updateTicket(Ticket ticket, int userId) {
 		int numberOfRowsAffected;
 
-		// Set auditlogging fields data
+		// Set audit-logging fields data
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
 
 		LOGGER.debug("Updating ticket with id: {} for the user with id: {}", ticket.getId(), userId);
@@ -379,6 +379,8 @@ public class TicketDaoImpl implements TicketDao {
 			sql.append(",tkt_svctype_id = (SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
 
 		sql.append(" WHERE tkt_id =:tkt_id && tkt_created_by =:tkt_created_by");
+		
+		LOGGER.debug("Executing the SQL: {}", sql);
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
@@ -394,6 +396,9 @@ public class TicketDaoImpl implements TicketDao {
 			paramMap.put("svctype_name", ticket.getServiceCategory());
 		paramMap.put("tkt_id", ticket.getId());
 		paramMap.put("tkt_created_by", userId);
+		
+		LOGGER.debug("paramMap: {}", paramMap);
+		
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
 
 		if (numberOfRowsAffected == 1)

@@ -88,20 +88,11 @@ public class TicketServiceImpl implements TicketService {
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
 
-		/*
-		 * Update ticket table only when there is an update to atleast one of -sts_name,
-		 * dept_id, pty_name, tkttype_name or svctype_name
-		 */
 		List<Integer> attachmentIds = null;
 		int ticketHistoryId = 0;
 
-		if (!(ticket.getStatus() == null && ticket.getDepartment() == null && ticket.getPriority() == null
-				&& ticket.getServiceCategory() == null && ticket.getType() == null)) {
-
-			LOGGER.debug("Updating ticket-details: {} for the given userId: {}", ticket, user.getId());
-			ticketDao.updateTicket(ticket, user.getId());
-
-		}
+		LOGGER.debug("Updating ticket-details: {} for the given userId: {}", ticket, user.getId());
+		ticketDao.updateTicket(ticket, user.getId());
 
 		// Create tickethistory item in table if tickethistory is present
 		if (ticket.getTicketHistoryList() != null)
@@ -226,9 +217,9 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe,String sortBy, String sortOrder, String status, int pageNumber,
-			int pageSize, String priority) {
-		
+	public Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe, String sortBy, String sortOrder,
+			String status, int pageNumber, int pageSize, String priority) {
+
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
@@ -238,7 +229,8 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Creating pageable object with pageNumber: {} and size: {}", pageNumber, pageSize);
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTickets(user.getId(), createdByMe, sortBy, sortOrder, status, pageable, priority);
+		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTickets(user.getId(), createdByMe, sortBy, sortOrder,
+				status, pageable, priority);
 
 		LOGGER.debug("Tickets fetched: {}", paginatedTickets.toString());
 		return paginatedTickets;
