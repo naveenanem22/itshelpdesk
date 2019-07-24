@@ -379,7 +379,7 @@ public class TicketDaoImpl implements TicketDao {
 			sql.append(",tkt_svctype_id = (SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
 
 		sql.append(" WHERE tkt_id =:tkt_id && tkt_created_by =:tkt_created_by");
-		
+
 		LOGGER.debug("Executing the SQL: {}", sql);
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
@@ -396,9 +396,9 @@ public class TicketDaoImpl implements TicketDao {
 			paramMap.put("svctype_name", ticket.getServiceCategory());
 		paramMap.put("tkt_id", ticket.getId());
 		paramMap.put("tkt_created_by", userId);
-		
+
 		LOGGER.debug("paramMap: {}", paramMap);
-		
+
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
 
 		if (numberOfRowsAffected == 1)
@@ -794,6 +794,10 @@ public class TicketDaoImpl implements TicketDao {
 	public int createTicketHistory(TicketHistory ticketHistory, int ticketId, int userId) {
 		LOGGER.debug("Creating ticket-history record: {} for the given ticket with id: {} by user with id: {}",
 				ticketHistory, ticketId, userId);
+
+		// Set audit-logging fields data
+		ticketHistory.setCommentedDate(LocalDateTime.now(ZoneOffset.UTC));
+
 		int numberOfRowsAffected;
 		KeyHolder ticketHistoryKey = new GeneratedKeyHolder();
 		String[] keyColumnNames = new String[1];
