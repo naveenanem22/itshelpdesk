@@ -291,6 +291,7 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append(", tkt_title, tkt_description, tkt_dept_id, ");
 		sql.append("tkt_pty_id, tkt_tkttype_id, tkt_svctype_id,");
 		sql.append("tkt_created_by,");
+		sql.append("tkt_additional_info,");
 		sql.append("tkt_sts_id,");
 		sql.append("tkt_updated_by");
 		sql.append(")");
@@ -302,6 +303,7 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append(",(SELECT tkttype_id FROM tickettype WHERE tkttype_name =:tkttype_name)");
 		sql.append(",(SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
 		sql.append(",:tkt_created_by");
+		sql.append(",:tkt_additional_info");
 		sql.append(",(SELECT sts_id FROM status WHERE sts_name =:sts_name)");
 		sql.append(",:tkt_updated_by");
 		sql.append(")");
@@ -317,6 +319,7 @@ public class TicketDaoImpl implements TicketDao {
 		paramMap.put("svctype_name", ticket.getServiceCategory());
 		paramMap.put("tkttype_name", ticket.getType());
 		paramMap.put("tkt_created_by", userId);
+		paramMap.put("tkt_additional_info", ticket.getAdditionalInfo());
 		paramMap.put("tkt_updated_by", userId);
 
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
@@ -849,6 +852,7 @@ public class TicketDaoImpl implements TicketDao {
 			ticket.setStatus(rs.getString("sts_name"));
 			ticket.setTitle(rs.getString("tkt_title"));
 			ticket.setType(rs.getString("tkttype_name"));
+			ticket.setAdditionalInfo(rs.getString("tkt_additional_info"));
 			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
 
 			return ticket;

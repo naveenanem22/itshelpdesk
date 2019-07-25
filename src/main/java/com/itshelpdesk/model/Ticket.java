@@ -41,6 +41,9 @@ public class Ticket {
 	@JsonProperty("ticketType")
 	private String type;
 
+	@JsonProperty("additionalInfo")
+	private String additionalInfo;
+
 	@JsonProperty("status")
 	private String status;
 
@@ -68,6 +71,14 @@ public class Ticket {
 
 	public Ticket() {
 
+	}
+
+	public String getAdditionalInfo() {
+		return additionalInfo;
+	}
+
+	public void setAdditionalInfo(String additionalInfo) {
+		this.additionalInfo = additionalInfo;
 	}
 
 	public Employee getUpdatedBy() {
@@ -202,9 +213,10 @@ public class Ticket {
 	public String toString() {
 		return "Ticket [id=" + id + ", title=" + title + ", description=" + description + ", department=" + department
 				+ ", priority=" + priority + ", serviceCategory=" + serviceCategory + ", officeLocation="
-				+ officeLocation + ", deskNumber=" + deskNumber + ", type=" + type + ", status=" + status
-				+ ", assignedTo=" + assignedTo + ", ticketHistoryList=" + ticketHistoryList + ", createdBy=" + createdBy
-				+ ", updatedBy=" + updatedBy + ", createdDate=" + createdDate + ", updatedDate=" + updatedDate + "]";
+				+ officeLocation + ", deskNumber=" + deskNumber + ", type=" + type + ", additionalInfo="
+				+ additionalInfo + ", status=" + status + ", assignedTo=" + assignedTo + ", ticketHistoryList="
+				+ ticketHistoryList + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdDate="
+				+ createdDate + ", updatedDate=" + updatedDate + "]";
 	}
 
 }

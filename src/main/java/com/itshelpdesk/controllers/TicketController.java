@@ -223,6 +223,7 @@ public class TicketController {
 		ticket.setType(serviceType);
 		ticket.setDepartment(department);
 		ticket.setStatus(status);
+		ticket.setAdditionalInfo(additionalInfo);
 
 		int ticketId = ticketService.createTicket(ticket, userDetails.getUsername());
 		LOGGER.debug("Ticket created with id: {}", ticketId);
