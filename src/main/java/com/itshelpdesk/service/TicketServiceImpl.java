@@ -48,13 +48,65 @@ public class TicketServiceImpl implements TicketService {
 	@Qualifier("userServiceImpl")
 	private UserService userService;
 
+	@Transactional
 	public int createTicket(Ticket ticket, String userName) {
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
+		int createdTicketId;
+		int ticketHistoryId = 0;
+		List<Integer> attachmentIds = null;
+		
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
 
 		LOGGER.debug("Creating ticket with the details: {} by the user with id: {}", ticket, user.getId());
-		return ticketDao.createTicket(ticket, user.getId());
+		createdTicketId = ticketDao.createTicket(ticket, user.getId());
+		
+		LOGGER.debug("Created ticketId: {}", createdTicketId);
+
+		/*
+		 * Creating conversation history with additional info and attachments once we
+		 * the ticket is created successfully
+		 */
+
+		LOGGER.debug("Creating TicketHistory record with additional-info and attachments");
+		
+		//Setting createdTicketId as id of the ticket
+		ticket.setId(createdTicketId);
+		
+		
+		// Create tickethistory item in table if tickethistory is present
+		if (ticket.getTicketHistoryList() != null)
+			ticketHistoryId = ticketDao.createTicketHistory(ticket.getTicketHistoryList().get(0), ticket.getId(),
+					user.getId());
+
+		// Upload attachments only if it has attachment(s) to be uploaded
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		List<String> fileNames = new ArrayList<String>();
+		files = ticket.getTicketHistoryList().get(0).getFiles();
+		if (files != null && !files.isEmpty()) {
+			fileNames = fileStorageService.storeMultipleFile(files);
+
+			// Create List<Attachment> from fileNames
+			List<Attachment> attachments = new ArrayList<Attachment>();
+
+			fileNames.forEach(fileName -> {
+				Attachment attachment = new Attachment();
+				attachment.setName(fileName);
+				attachments.add(attachment);
+			});
+
+			// Code to persist the fileNames data to db
+			attachmentIds = itsHelpDeskAttachmentDao.createAttachments(attachments);
+			LOGGER.debug("Ids of the inserted attachment records: {}", attachmentIds.toString());
+
+		}
+
+		// Create records in ticketconv-attachment table if ticket has attachments
+		if (attachmentIds != null && !attachmentIds.isEmpty() && ticketHistoryId != 0)
+			ticketHistoryDao.createTicketHistoryAttachment(attachmentIds, ticketHistoryId);
+		
+		//return the createdTicketId
+		return createdTicketId;
 
 	}
 

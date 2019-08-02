@@ -280,10 +280,15 @@ public class TicketDaoImpl implements TicketDao {
 
 	public int createTicket(Ticket ticket, int userId) {
 		int numberOfRowsAffected;
+		int createdTicketId;
 		// Setting audit field data
 		ticket.setCreatedDate(LocalDateTime.now(ZoneOffset.UTC));
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
 		StringBuilder sql = new StringBuilder();
+
+		KeyHolder tktIdKey = new GeneratedKeyHolder();
+		String[] keyColumnNames = new String[1];
+		keyColumnNames[0] = "tkt_id";
 
 		sql.append("INSERT INTO ticket ");
 		sql.append("(");
@@ -308,24 +313,37 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append(",:tkt_updated_by");
 		sql.append(")");
 
-		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
-		paramMap.put("tkt_created_date", ticket.getCreatedDate());
-		paramMap.put("tkt_title", ticket.getTitle());
-		paramMap.put("tkt_description", ticket.getDescription());
-		paramMap.put("dept_name", ticket.getDepartment().getName());
-		paramMap.put("pty_name", ticket.getPriority());
-		paramMap.put("sts_name", ticket.getStatus());
-		paramMap.put("svctype_name", ticket.getServiceCategory());
-		paramMap.put("tkttype_name", ticket.getType());
-		paramMap.put("tkt_created_by", userId);
-		paramMap.put("tkt_additional_info", ticket.getAdditionalInfo());
-		paramMap.put("tkt_updated_by", userId);
+		/*
+		 * Map<String, Object> paramMap = new HashMap<String, Object>();
+		 * paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
+		 * paramMap.put("tkt_created_date", ticket.getCreatedDate());
+		 * paramMap.put("tkt_title", ticket.getTitle()); paramMap.put("tkt_description",
+		 * ticket.getDescription()); paramMap.put("dept_name",
+		 * ticket.getDepartment().getName()); paramMap.put("pty_name",
+		 * ticket.getPriority()); paramMap.put("sts_name", ticket.getStatus());
+		 * paramMap.put("svctype_name", ticket.getServiceCategory());
+		 * paramMap.put("tkttype_name", ticket.getType());
+		 * paramMap.put("tkt_created_by", userId); paramMap.put("tkt_additional_info",
+		 * ticket.getAdditionalInfo()); paramMap.put("tkt_updated_by", userId);
+		 */
 
-		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
+		SqlParameterSource paramSource = new MapSqlParameterSource()
+				.addValue("tkt_updated_date", ticket.getUpdatedDate())
+				.addValue("tkt_created_date", ticket.getCreatedDate()).addValue("tkt_title", ticket.getTitle())
+				.addValue("tkt_description", ticket.getDescription())
+				.addValue("dept_name", ticket.getDepartment().getName()).addValue("pty_name", ticket.getPriority())
+				.addValue("sts_name", ticket.getStatus()).addValue("svctype_name", ticket.getServiceCategory())
+				.addValue("tkttype_name", ticket.getType()).addValue("tkt_created_by", userId)
+				.addValue("tkt_additional_info", ticket.getAdditionalInfo()).addValue("tkt_updated_by", userId);
 
-		if (numberOfRowsAffected == 1)
-			return 1;
+		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramSource, tktIdKey, keyColumnNames);
+
+		if (numberOfRowsAffected == 1) {
+			createdTicketId = tktIdKey.getKey().intValue();
+			LOGGER.debug("Created ticket with id: {}", createdTicketId);
+			return createdTicketId;
+		}
+			
 		else
 			throw new InternalServerException("Unexpected error occured while creating a ticket.");
 

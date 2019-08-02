@@ -224,7 +224,27 @@ public class TicketController {
 		ticket.setDepartment(department);
 		ticket.setStatus(status);
 		ticket.setAdditionalInfo(additionalInfo);
+		
+		//creating ticketHistory using the additional-info and attachments
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		if (file1 != null)
+			files.add(file1);
+		if (file2 != null)
+			files.add(file2);
+		if (file3 != null)
+			files.add(file3);
 
+		TicketHistory ticketHistory = new TicketHistory();
+		ticketHistory.setAuthorName(userDetails.getUsername());
+		ticketHistory.setComment(additionalInfo);
+		ticketHistory.setCommentedDate(LocalDateTime.now());
+		ticketHistory.setFiles(files);
+
+		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
+		ticketHistoryList.add(ticketHistory);
+		ticket.setTicketHistoryList(ticketHistoryList);
+
+		
 		int ticketId = ticketService.createTicket(ticket, userDetails.getUsername());
 		LOGGER.debug("Ticket created with id: {}", ticketId);
 
