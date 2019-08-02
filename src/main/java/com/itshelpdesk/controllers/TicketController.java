@@ -3,7 +3,9 @@ package com.itshelpdesk.controllers;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -134,9 +137,8 @@ public class TicketController {
 		else
 			LOGGER.debug("Search Criteria - priority: {}", priority);
 
-		return new ResponseEntity<Page<Ticket>>(
-				ticketService.getPaginatedTickets(userDetails.getUsername(), createdByMe, sortBy, sortOrder, statusName, pageNumber, pageSize, priority),
-				HttpStatus.OK);
+		return new ResponseEntity<Page<Ticket>>(ticketService.getPaginatedTickets(userDetails.getUsername(),
+				createdByMe, sortBy, sortOrder, statusName, pageNumber, pageSize, priority), HttpStatus.OK);
 	}
 
 	/********************** ticket-management URI END ***********************/
@@ -201,8 +203,8 @@ public class TicketController {
 
 	/********************** ticket-support URI END **************************/
 	/********************** ticketing URI START *****************************/
-	@PostMapping(path = "/ticketing/tickets", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<String> createTicket(@AuthenticationPrincipal UserDetails userDetails,
+	@RequestMapping(path = "/ticketing/tickets", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Ticket> createTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("ticketTitle") String title, @RequestParam("ticketDescription") String description,
 			@RequestParam("department") String departmentName, @RequestParam("priority") String priority,
 			@RequestParam("serviceCategory") String serviceCategory, @RequestParam("status") String status,
@@ -224,8 +226,8 @@ public class TicketController {
 		ticket.setDepartment(department);
 		ticket.setStatus(status);
 		ticket.setAdditionalInfo(additionalInfo);
-		
-		//creating ticketHistory using the additional-info and attachments
+
+		// creating ticketHistory using the additional-info and attachments
 		List<MultipartFile> files = new ArrayList<MultipartFile>();
 		if (file1 != null)
 			files.add(file1);
@@ -244,13 +246,15 @@ public class TicketController {
 		ticketHistoryList.add(ticketHistory);
 		ticket.setTicketHistoryList(ticketHistoryList);
 
-		
 		int ticketId = ticketService.createTicket(ticket, userDetails.getUsername());
 		LOGGER.debug("Ticket created with id: {}", ticketId);
 
-		return ResponseEntity.created(null).build();
+		ticket.setId(ticketId);
+		return new ResponseEntity<Ticket>(ticket, HttpStatus.CREATED);
+
 	}
 
+	
 	@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateOwnTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
