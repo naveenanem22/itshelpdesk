@@ -248,9 +248,9 @@ public class TicketController {
 
 		int ticketId = ticketService.createTicket(ticket, userDetails.getUsername());
 		LOGGER.debug("Ticket created with id: {}", ticketId);
-
-		ticket.setId(ticketId);
-		return new ResponseEntity<Ticket>(ticket, HttpStatus.CREATED);
+		Ticket createdTicket = new Ticket();
+		createdTicket.setId(ticketId);
+		return new ResponseEntity<Ticket>(createdTicket, HttpStatus.CREATED);
 
 	}
 
