@@ -343,7 +343,7 @@ public class TicketDaoImpl implements TicketDao {
 			LOGGER.debug("Created ticket with id: {}", createdTicketId);
 			return createdTicketId;
 		}
-			
+
 		else
 			throw new InternalServerException("Unexpected error occured while creating a ticket.");
 
@@ -444,6 +444,8 @@ public class TicketDaoImpl implements TicketDao {
 		if (!ticket.getStatus().isEmpty()) {
 			sql.append("UPDATE ticket SET tkt_updated_date =:tkt_updated_date ");
 			sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
+			if (ticket.getPriority() != null)
+				sql.append(", tkt_pty_id = (SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
 			sql.append(" WHERE tkt_id= :tkt_id");
 		}
 
@@ -451,6 +453,8 @@ public class TicketDaoImpl implements TicketDao {
 		paramMap.put("sts_name", ticket.getStatus());
 		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
 		paramMap.put("tkt_id", ticket.getId());
+		if (ticket.getPriority() != null)
+			paramMap.put("pty_name", ticket.getPriority());
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
 		if (numberOfRowsAffected > 1 || numberOfRowsAffected == 0)
 			throw new InternalServerException("Unexpected exception occured while updating ticket.");
