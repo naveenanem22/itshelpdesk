@@ -446,6 +446,8 @@ public class TicketDaoImpl implements TicketDao {
 			sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
 			if (ticket.getPriority() != null)
 				sql.append(", tkt_pty_id = (SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
+			if (ticket.getDepartment().getName() != null)
+				sql.append(", tkt_dept_id = (SELECT dept_id FROM department WHERE dept_name =:dept_name)");
 			sql.append(" WHERE tkt_id= :tkt_id");
 		}
 
@@ -453,6 +455,8 @@ public class TicketDaoImpl implements TicketDao {
 		paramMap.put("sts_name", ticket.getStatus());
 		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
 		paramMap.put("tkt_id", ticket.getId());
+		if (ticket.getDepartment() != null)
+			paramMap.put("dept_name", ticket.getDepartment().getName());
 		if (ticket.getPriority() != null)
 			paramMap.put("pty_name", ticket.getPriority());
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
