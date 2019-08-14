@@ -101,7 +101,7 @@ public class TicketController {
 		ticket.setId(ticketId);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
 
-		ticketService.assignTicketByManager(ticket, userDetails.getUsername());
+		ticketService.updateTicket(ticket, userDetails.getUsername());
 
 		return ResponseEntity.noContent().build();
 	}
@@ -253,9 +253,45 @@ public class TicketController {
 		return new ResponseEntity<Ticket>(createdTicket, HttpStatus.CREATED);
 
 	}
-
 	
 	@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Object> updateTicketByCreator(@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable(value = "id", required = true) int ticketId,
+			@RequestPart(value = "comment", required = true) String comment,
+			@RequestPart(value = "commentedOn", required = true) String commentedOn,
+			@RequestPart(value = "file1", required = false) MultipartFile file1,
+			@RequestPart(value = "file2", required = false) MultipartFile file2,
+			@RequestPart(value = "file3", required = false) MultipartFile file3,
+			@RequestPart(value = "status", required = false) String status) {
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		if (file1 != null)
+			files.add(file1);
+		if (file2 != null)
+			files.add(file2);
+		if (file3 != null)
+			files.add(file3);
+
+		TicketHistory ticketHistory = new TicketHistory();
+		ticketHistory.setAuthorName(userDetails.getUsername());
+		ticketHistory.setComment(comment);
+		ticketHistory.setCommentedDate(LocalDateTime.now());
+		ticketHistory.setFiles(files);
+
+		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
+		ticketHistoryList.add(ticketHistory);
+
+		Ticket ticket = new Ticket();
+		ticket.setId(ticketId);
+		if (status != null)
+			ticket.setStatus(status);
+		ticket.setTicketHistoryList(ticketHistoryList);
+		LOGGER.debug("Updating ticket: {} by the creator: {}", ticket, userDetails.getUsername());
+
+		ticketService.updateTicketByCreator(ticket, userDetails.getUsername());
+		return ResponseEntity.noContent().build();
+	}
+	
+	/*@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateOwnTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
 			@RequestPart(value = "comment", required = true) String comment,
@@ -290,23 +326,8 @@ public class TicketController {
 
 		ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
-	}
+	}*/
 
-	/*
-	 * @GetMapping(path = "/ticketing/tickets", produces =
-	 * MediaType.APPLICATION_JSON_VALUE) public ResponseEntity<List<Ticket>>
-	 * getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
-	 * 
-	 * @RequestParam(required = false, name = "status") String status,
-	 * 
-	 * @RequestParam(required = false, name = "sortBy") String sortBy) { LOGGER.
-	 * debug("Fetching tickets created by the user with userName: {}, status: {} and sortBy: {}"
-	 * , userDetails.getUsername(), status, sortBy);
-	 * 
-	 * return new
-	 * ResponseEntity<List<Ticket>>(ticketService.getTicketsByCreator(userDetails.
-	 * getUsername(), status), HttpStatus.OK); }
-	 */
 	@GetMapping(path = "/ticketing/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Page<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(required = false, name = "status") String status,

@@ -376,13 +376,13 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public boolean updateTicket(Ticket ticket, int userId) {
+	public boolean updateTicketByCreator(Ticket ticket, int userId) {
 		int numberOfRowsAffected;
 
 		// Set audit-logging fields data
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
 
-		LOGGER.debug("Updating ticket with id: {} for the user with id: {}", ticket.getId(), userId);
+		LOGGER.debug("Updating ticket with id: {} by the creator with id: {}", ticket.getId(), userId);
 
 		StringBuilder sql = new StringBuilder();
 		// Update the ticket status in ticket table
@@ -435,7 +435,7 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public boolean updateTicketByManager(Ticket ticket) {
+	public boolean updateTicket(Ticket ticket) {
 		int numberOfRowsAffected = 0;
 
 		// Update ticket's status by manager
@@ -466,11 +466,6 @@ public class TicketDaoImpl implements TicketDao {
 		return true;
 	}
 
-	@Override
-	public boolean updateTicketByCreator(Ticket ticket, User createdBy) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public boolean updateTicketByAssignee(Ticket ticket, User assignee) {
@@ -994,6 +989,13 @@ public class TicketDaoImpl implements TicketDao {
 			return ticketHistoryList;
 		}
 
+	}
+
+	@Override
+	public Page<Ticket> getPaginatedTicketsByAssignee(int userId, String sortBy, String sortOrder, String status,
+			Pageable pageable) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

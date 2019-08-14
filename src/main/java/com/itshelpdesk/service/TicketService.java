@@ -15,7 +15,7 @@ public interface TicketService {
 
 	List<Ticket> getTicketsByUserName(String userName, String status, String priority);
 
-	boolean updateTicket(Ticket ticket, String userName);
+	boolean updateTicketByCreator(Ticket ticket, String userName);
 
 	boolean deleteTicket(int ticketId, String userName);
 
@@ -23,7 +23,7 @@ public interface TicketService {
 
 	boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName);
 
-	boolean assignTicketByManager(Ticket ticket, String userName);
+	boolean updateTicket(Ticket ticket, String userName);
 
 	List<Ticket> getTickets(String status, String priority);
 	Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe, String sortBy, String sortOrder, String status, int pageNumber,

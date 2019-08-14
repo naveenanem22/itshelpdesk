@@ -134,7 +134,7 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	@Transactional
-	public boolean updateTicket(Ticket ticket, String userName) {
+	public boolean updateTicketByCreator(Ticket ticket, String userName) {
 		// Fetch user by given userName
 		LOGGER.debug("Fetching user by userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
@@ -144,7 +144,7 @@ public class TicketServiceImpl implements TicketService {
 		int ticketHistoryId = 0;
 
 		LOGGER.debug("Updating ticket-details: {} for the given userId: {}", ticket, user.getId());
-		ticketDao.updateTicket(ticket, user.getId());
+		ticketDao.updateTicketByCreator(ticket, user.getId());
 
 		// Create tickethistory item in table if tickethistory is present
 		if (ticket.getTicketHistoryList() != null)
@@ -203,7 +203,7 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	@Transactional
-	public boolean assignTicketByManager(Ticket ticket, String userName) {
+	public boolean updateTicket(Ticket ticket, String userName) {
 
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
@@ -227,7 +227,7 @@ public class TicketServiceImpl implements TicketService {
 
 		// Updating ticket's status
 		LOGGER.debug("Updating ticket: {} with the status: {} by the user: {}", ticket, ticket.getStatus(), user);
-		ticketDao.updateTicketByManager(ticket);
+		ticketDao.updateTicket(ticket);
 		LOGGER.debug("ticket-status update successful.");
 
 		return true;
