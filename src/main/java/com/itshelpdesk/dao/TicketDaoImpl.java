@@ -447,10 +447,16 @@ public class TicketDaoImpl implements TicketDao {
 				sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
 			if (ticket.getPriority() != null)
 				sql.append(", tkt_pty_id = (SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
+			if (ticket.getType() != null)
+				sql.append(", tkt_tkttype_id = (SELECT tkt_id FROM tickettype WHERE tkttype_name =:tkttype_name)");
+			if (ticket.getServiceCategory() != null)
+				sql.append(", tkt_svctype_id = (SELECT svctype_id FROM servicetype WHERE svctype_name =:svctype_name)");
 			if (ticket.getDepartment() != null)
 				sql.append(", tkt_dept_id = (SELECT dept_id FROM department WHERE dept_name =:dept_name)");
 			sql.append(" WHERE tkt_id= :tkt_id");
 		}
+
+		LOGGER.debug("Executing the SQL: {}", sql);
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		if (!ticket.getStatus().isEmpty())
 			paramMap.put("sts_name", ticket.getStatus());
@@ -460,6 +466,12 @@ public class TicketDaoImpl implements TicketDao {
 			paramMap.put("dept_name", ticket.getDepartment().getName());
 		if (ticket.getPriority() != null)
 			paramMap.put("pty_name", ticket.getPriority());
+		if (ticket.getType() != null)
+			paramMap.put("tkttype_name", ticket.getType());
+		if (ticket.getServiceCategory() != null)
+			paramMap.put("svctype_name", ticket.getServiceCategory());
+
+		LOGGER.debug("paramMap: {}", paramMap);
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
 		if (numberOfRowsAffected > 1 || numberOfRowsAffected == 0)
 			throw new InternalServerException("Unexpected exception occured while updating ticket.");

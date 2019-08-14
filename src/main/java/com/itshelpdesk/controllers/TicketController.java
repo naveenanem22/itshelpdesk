@@ -38,6 +38,7 @@ import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
 import com.itshelpdesk.service.TicketService;
 import com.pc.model.Department;
+import com.pc.model.User;
 import com.pc.services.FileStorageService;
 
 @RestController(value = "ticketController")
@@ -97,12 +98,15 @@ public class TicketController {
 	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
-			@RequestPart(value = "comment", required = true) String comment,
-			@RequestPart(value = "commentedOn", required = true) String commentedOn,
+			@RequestPart(value = "comment", required = false) String comment,
+			@RequestPart(value = "commentedOn", required = false) String commentedOn,
 			@RequestPart(value = "file1", required = false) MultipartFile file1,
 			@RequestPart(value = "file2", required = false) MultipartFile file2,
 			@RequestPart(value = "file3", required = false) MultipartFile file3,
-			@RequestPart(value = "status", required = false) String status,			
+			@RequestPart(value = "status", required = false) String status,
+			@RequestPart(value = "assignedTo", required = false) String assignedToUserName,
+			@RequestPart(value = "priority", required = false) String priority,
+			@RequestPart(value = "departmentName", required = false) String departmentName,
 			@RequestParam(required = false, name = "createdByMe") boolean createdByMe,
 			@RequestParam(required = false, name = "assignedToMe") boolean assignedToMe,
 			@RequestParam(required = false, name = "managedByMe") boolean managedByMe) {
@@ -129,6 +133,25 @@ public class TicketController {
 		if (status != null)
 			ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
+		
+		//Attaching assignedTo info
+		if(!assignedToUserName.isEmpty()) {
+			User assignedTo = new User();
+			assignedTo.setUserName(assignedToUserName);
+			ticket.setAssignedTo(assignedTo);
+		}
+		
+		//Attaching department info
+		if(!departmentName.isEmpty()) {
+			Department department = new Department();
+			department.setName(departmentName);
+			ticket.setDepartment(department);
+		}
+		
+		//Attaching priority info
+		if(!priority.isEmpty())
+			ticket.setPriority(priority);
+		
 		LOGGER.debug("Updating ticket: {} by the creator: {}", ticket, userDetails.getUsername());
 
 		LOGGER.debug("createdByMe: {}", createdByMe);

@@ -228,7 +228,7 @@ public class TicketServiceImpl implements TicketService {
 		}
 
 		// Updating ticket's status
-		LOGGER.debug("Updating ticket: {} with the status: {} by the user: {}", ticket, ticket.getStatus(), user);
+		LOGGER.debug("Updating ticket: {} by the user: {}", ticket, ticket.getStatus(), user);
 		ticketDao.updateTicket(ticket, createdByMe, assignedToMe, managedByMe);
 		LOGGER.debug("ticket-status update successful.");
 
