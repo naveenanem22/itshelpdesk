@@ -94,14 +94,48 @@ public class TicketController {
 		return ResponseEntity.noContent().build();
 	}
 
-	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+	@PutMapping(path = "/ticket-management/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicket(@AuthenticationPrincipal UserDetails userDetails,
-			@RequestBody Ticket ticket, @PathVariable("id") int ticketId) {
+			@PathVariable(value = "id", required = true) int ticketId,
+			@RequestPart(value = "comment", required = true) String comment,
+			@RequestPart(value = "commentedOn", required = true) String commentedOn,
+			@RequestPart(value = "file1", required = false) MultipartFile file1,
+			@RequestPart(value = "file2", required = false) MultipartFile file2,
+			@RequestPart(value = "file3", required = false) MultipartFile file3,
+			@RequestPart(value = "status", required = false) String status,			
+			@RequestParam(required = false, name = "createdByMe") boolean createdByMe,
+			@RequestParam(required = false, name = "assignedToMe") boolean assignedToMe,
+			@RequestParam(required = false, name = "managedByMe") boolean managedByMe) {
 		// Setting ticketId
-		ticket.setId(ticketId);
-		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		if (file1 != null)
+			files.add(file1);
+		if (file2 != null)
+			files.add(file2);
+		if (file3 != null)
+			files.add(file3);
 
-		ticketService.updateTicket(ticket, userDetails.getUsername());
+		TicketHistory ticketHistory = new TicketHistory();
+		ticketHistory.setAuthorName(userDetails.getUsername());
+		ticketHistory.setComment(comment);
+		ticketHistory.setCommentedDate(LocalDateTime.now());
+		ticketHistory.setFiles(files);
+
+		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
+		ticketHistoryList.add(ticketHistory);
+
+		Ticket ticket = new Ticket();
+		ticket.setId(ticketId);
+		if (status != null)
+			ticket.setStatus(status);
+		ticket.setTicketHistoryList(ticketHistoryList);
+		LOGGER.debug("Updating ticket: {} by the creator: {}", ticket, userDetails.getUsername());
+
+		LOGGER.debug("createdByMe: {}", createdByMe);
+		LOGGER.debug("assignedToMe: {}", assignedToMe);
+		LOGGER.debug("managedByMe: {}", managedByMe);
+
+		ticketService.updateTicket(ticket, userDetails.getUsername(), createdByMe, assignedToMe, managedByMe);
 
 		return ResponseEntity.noContent().build();
 	}
@@ -176,7 +210,7 @@ public class TicketController {
 		ticket.setTicketHistoryList(ticketHistoryList);
 		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
 
-		ticketService.updateTicket(ticket, userDetails.getUsername());
+		// ticketService.updateTicket(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
 
@@ -253,7 +287,7 @@ public class TicketController {
 		return new ResponseEntity<Ticket>(createdTicket, HttpStatus.CREATED);
 
 	}
-	
+
 	@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Object> updateTicketByCreator(@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable(value = "id", required = true) int ticketId,
@@ -290,43 +324,46 @@ public class TicketController {
 		ticketService.updateTicketByCreator(ticket, userDetails.getUsername());
 		return ResponseEntity.noContent().build();
 	}
-	
-	/*@PutMapping(path = "/ticketing/tickets/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<Object> updateOwnTicket(@AuthenticationPrincipal UserDetails userDetails,
-			@PathVariable(value = "id", required = true) int ticketId,
-			@RequestPart(value = "comment", required = true) String comment,
-			@RequestPart(value = "commentedOn", required = true) String commentedOn,
-			@RequestPart(value = "file1", required = false) MultipartFile file1,
-			@RequestPart(value = "file2", required = false) MultipartFile file2,
-			@RequestPart(value = "file3", required = false) MultipartFile file3,
-			@RequestPart(value = "status", required = false) String status) {
-		List<MultipartFile> files = new ArrayList<MultipartFile>();
-		if (file1 != null)
-			files.add(file1);
-		if (file2 != null)
-			files.add(file2);
-		if (file3 != null)
-			files.add(file3);
 
-		TicketHistory ticketHistory = new TicketHistory();
-		ticketHistory.setAuthorName(userDetails.getUsername());
-		ticketHistory.setComment(comment);
-		ticketHistory.setCommentedDate(LocalDateTime.now());
-		ticketHistory.setFiles(files);
-
-		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
-		ticketHistoryList.add(ticketHistory);
-
-		Ticket ticket = new Ticket();
-		ticket.setId(ticketId);
-		if (status != null)
-			ticket.setStatus(status);
-		ticket.setTicketHistoryList(ticketHistoryList);
-		LOGGER.debug("Updating ticket: {} by the given user: {}", ticket, userDetails.getUsername());
-
-		ticketService.updateTicket(ticket, userDetails.getUsername());
-		return ResponseEntity.noContent().build();
-	}*/
+	/*
+	 * @PutMapping(path = "/ticketing/tickets/{id}", consumes =
+	 * MediaType.MULTIPART_FORM_DATA_VALUE) public ResponseEntity<Object>
+	 * updateOwnTicket(@AuthenticationPrincipal UserDetails userDetails,
+	 * 
+	 * @PathVariable(value = "id", required = true) int ticketId,
+	 * 
+	 * @RequestPart(value = "comment", required = true) String comment,
+	 * 
+	 * @RequestPart(value = "commentedOn", required = true) String commentedOn,
+	 * 
+	 * @RequestPart(value = "file1", required = false) MultipartFile file1,
+	 * 
+	 * @RequestPart(value = "file2", required = false) MultipartFile file2,
+	 * 
+	 * @RequestPart(value = "file3", required = false) MultipartFile file3,
+	 * 
+	 * @RequestPart(value = "status", required = false) String status) {
+	 * List<MultipartFile> files = new ArrayList<MultipartFile>(); if (file1 !=
+	 * null) files.add(file1); if (file2 != null) files.add(file2); if (file3 !=
+	 * null) files.add(file3);
+	 * 
+	 * TicketHistory ticketHistory = new TicketHistory();
+	 * ticketHistory.setAuthorName(userDetails.getUsername());
+	 * ticketHistory.setComment(comment);
+	 * ticketHistory.setCommentedDate(LocalDateTime.now());
+	 * ticketHistory.setFiles(files);
+	 * 
+	 * List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
+	 * ticketHistoryList.add(ticketHistory);
+	 * 
+	 * Ticket ticket = new Ticket(); ticket.setId(ticketId); if (status != null)
+	 * ticket.setStatus(status); ticket.setTicketHistoryList(ticketHistoryList);
+	 * LOGGER.debug("Updating ticket: {} by the given user: {}", ticket,
+	 * userDetails.getUsername());
+	 * 
+	 * ticketService.updateTicket(ticket, userDetails.getUsername()); return
+	 * ResponseEntity.noContent().build(); }
+	 */
 
 	@GetMapping(path = "/ticketing/tickets", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Page<Ticket>> getTicketsByCreator(@AuthenticationPrincipal UserDetails userDetails,

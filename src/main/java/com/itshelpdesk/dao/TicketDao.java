@@ -45,7 +45,7 @@ public interface TicketDao {
 	/* Fetching single ticket END */
 
 	/* Update Ticket START */
-	boolean updateTicket(Ticket ticket);
+	boolean updateTicket(Ticket ticket, boolean createdByMe, boolean assignedToMe, boolean managedByMe);
 
 	boolean updateTickets(List<Ticket> tickets);
 

@@ -54,13 +54,13 @@ public class TicketServiceImpl implements TicketService {
 		int createdTicketId;
 		int ticketHistoryId = 0;
 		List<Integer> attachmentIds = null;
-		
+
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
 
 		LOGGER.debug("Creating ticket with the details: {} by the user with id: {}", ticket, user.getId());
 		createdTicketId = ticketDao.createTicket(ticket, user.getId());
-		
+
 		LOGGER.debug("Created ticketId: {}", createdTicketId);
 
 		/*
@@ -69,11 +69,10 @@ public class TicketServiceImpl implements TicketService {
 		 */
 
 		LOGGER.debug("Creating TicketHistory record with additional-info and attachments");
-		
-		//Setting createdTicketId as id of the ticket
+
+		// Setting createdTicketId as id of the ticket
 		ticket.setId(createdTicketId);
-		
-		
+
 		// Create tickethistory item in table if tickethistory is present
 		if (ticket.getTicketHistoryList() != null)
 			ticketHistoryId = ticketDao.createTicketHistory(ticket.getTicketHistoryList().get(0), ticket.getId(),
@@ -104,8 +103,8 @@ public class TicketServiceImpl implements TicketService {
 		// Create records in ticketconv-attachment table if ticket has attachments
 		if (attachmentIds != null && !attachmentIds.isEmpty() && ticketHistoryId != 0)
 			ticketHistoryDao.createTicketHistoryAttachment(attachmentIds, ticketHistoryId);
-		
-		//return the createdTicketId
+
+		// return the createdTicketId
 		return createdTicketId;
 
 	}
@@ -203,7 +202,8 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	@Transactional
-	public boolean updateTicket(Ticket ticket, String userName) {
+	public boolean updateTicket(Ticket ticket, String userName, boolean createdByMe, boolean assignedToMe,
+			boolean managedByMe) {
 
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
@@ -213,21 +213,23 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Setting audit-logging for updatedDate");
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
 
-		// Fetching assigedTo user based on username
-		LOGGER.debug("Fetching assignedTo user data");
-		User assignedTo = userService.getUserByUserName(ticket.getAssignedTo().getUserName());
-		LOGGER.debug("Fetched assignedTo user: {}", user);
+		// Fetching assigedTo user based on username if assignedTo is present
+		if (ticket.getAssignedTo() != null) {
+			LOGGER.debug("Fetching assignedTo user data");
+			User assignedTo = userService.getUserByUserName(ticket.getAssignedTo().getUserName());
+			LOGGER.debug("Fetched assignedTo user: {}", user);
 
-		// Updating the assignedTo field of the ticket
-		ticket.setAssignedTo(assignedTo);
+			// Updating the assignedTo field of the ticket
+			ticket.setAssignedTo(assignedTo);
 
-		// Creating assignment record
-		ticketDao.createTicketAssignment(ticket);
-		LOGGER.debug("ticket-assignment successful.");
+			// Creating assignment record
+			ticketDao.createTicketAssignment(ticket);
+			LOGGER.debug("ticket-assignment successful.");
+		}
 
 		// Updating ticket's status
 		LOGGER.debug("Updating ticket: {} with the status: {} by the user: {}", ticket, ticket.getStatus(), user);
-		ticketDao.updateTicket(ticket);
+		ticketDao.updateTicket(ticket, createdByMe, assignedToMe, managedByMe);
 		LOGGER.debug("ticket-status update successful.");
 
 		return true;

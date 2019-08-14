@@ -23,7 +23,7 @@ public interface TicketService {
 
 	boolean assignAndUpdateNewTickets(List<Ticket> tickets, String userName);
 
-	boolean updateTicket(Ticket ticket, String userName);
+	boolean updateTicket(Ticket ticket, String userName, boolean createdByMe, boolean assignedToMe, boolean managedByMe);
 
 	List<Ticket> getTickets(String status, String priority);
 	Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe, String sortBy, String sortOrder, String status, int pageNumber,

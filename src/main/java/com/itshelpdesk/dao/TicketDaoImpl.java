@@ -435,24 +435,25 @@ public class TicketDaoImpl implements TicketDao {
 	}
 
 	@Override
-	public boolean updateTicket(Ticket ticket) {
+	public boolean updateTicket(Ticket ticket, boolean createdByMe, boolean assignedToMe, boolean managedByMe) {
 		int numberOfRowsAffected = 0;
 
-		// Update ticket's status by manager
+		// Update ticket
 		LOGGER.debug("Updating ticket: {}", ticket);
 		StringBuilder sql = new StringBuilder();
-		if (!ticket.getStatus().isEmpty()) {
+		if (managedByMe) {
 			sql.append("UPDATE ticket SET tkt_updated_date =:tkt_updated_date ");
-			sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
+			if (!ticket.getStatus().isEmpty())
+				sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
 			if (ticket.getPriority() != null)
 				sql.append(", tkt_pty_id = (SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
-			if (ticket.getDepartment().getName() != null)
+			if (ticket.getDepartment() != null)
 				sql.append(", tkt_dept_id = (SELECT dept_id FROM department WHERE dept_name =:dept_name)");
 			sql.append(" WHERE tkt_id= :tkt_id");
 		}
-
 		Map<String, Object> paramMap = new HashMap<String, Object>();
-		paramMap.put("sts_name", ticket.getStatus());
+		if (!ticket.getStatus().isEmpty())
+			paramMap.put("sts_name", ticket.getStatus());
 		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
 		paramMap.put("tkt_id", ticket.getId());
 		if (ticket.getDepartment() != null)
@@ -465,7 +466,6 @@ public class TicketDaoImpl implements TicketDao {
 
 		return true;
 	}
-
 
 	@Override
 	public boolean updateTicketByAssignee(Ticket ticket, User assignee) {
