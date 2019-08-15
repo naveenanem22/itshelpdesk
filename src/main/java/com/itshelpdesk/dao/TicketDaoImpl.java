@@ -847,10 +847,12 @@ public class TicketDaoImpl implements TicketDao {
 		sql.append("(");
 		sql.append(":tktconv_tkt_id, :tktconv_author, :tktconv_message, :tktconv_commented_on");
 		sql.append(")");
+		LOGGER.debug("Creating the ticket-conversation by executing the sql:  {}", sql);
 
 		SqlParameterSource paramSource = new MapSqlParameterSource().addValue("tktconv_tkt_id", ticketId)
 				.addValue("tktconv_author", userId).addValue("tktconv_message", ticketHistory.getComment())
 				.addValue("tktconv_commented_on", ticketHistory.getCommentedDate());
+		LOGGER.debug("Executing the sql with the params: {}", paramSource);
 
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramSource, ticketHistoryKey,
 				keyColumnNames);

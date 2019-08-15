@@ -205,6 +205,9 @@ public class TicketServiceImpl implements TicketService {
 	public boolean updateTicket(Ticket ticket, String userName, boolean createdByMe, boolean assignedToMe,
 			boolean managedByMe) {
 
+		List<Integer> attachmentIds = null;
+		int ticketHistoryId = 0;
+
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
 		LOGGER.debug("Fetched user: {}", user);
@@ -213,7 +216,7 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Setting audit-logging for updatedDate");
 		ticket.setUpdatedDate(LocalDateTime.now(ZoneOffset.UTC));
 
-		// Fetching assigedTo user based on username if assignedTo is present
+		// Fetching assigedTo and assigning the ticket if assignedTo is present
 		if (ticket.getAssignedTo() != null) {
 			LOGGER.debug("Fetching assignedTo user data");
 			User assignedTo = userService.getUserByUserName(ticket.getAssignedTo().getUserName());
@@ -227,8 +230,41 @@ public class TicketServiceImpl implements TicketService {
 			LOGGER.debug("ticket-assignment successful.");
 		}
 
+		// Create tickethistory item in table if tickethistory is present
+		if (ticket.getTicketHistoryList() != null)
+			ticketHistoryId = ticketDao.createTicketHistory(ticket.getTicketHistoryList().get(0), ticket.getId(),
+					user.getId());
+
+		// Upload attachments only if it has attachment(s) to be uploaded
+		List<MultipartFile> files = new ArrayList<MultipartFile>();
+		List<String> fileNames = new ArrayList<String>();
+		files = ticket.getTicketHistoryList().get(0).getFiles();
+		if (files != null && !files.isEmpty()) {
+			LOGGER.debug("Saving attachments");
+			fileNames = fileStorageService.storeMultipleFile(files);
+			LOGGER.debug("List of file names: {}", fileNames);
+
+			// Create List<Attachment> from fileNames
+			List<Attachment> attachments = new ArrayList<Attachment>();
+
+			fileNames.forEach(fileName -> {
+				Attachment attachment = new Attachment();
+				attachment.setName(fileName);
+				attachments.add(attachment);
+			});
+
+			// Code to persist the fileNames data to db
+			attachmentIds = itsHelpDeskAttachmentDao.createAttachments(attachments);
+			LOGGER.debug("Ids of the inserted attachment records: {}", attachmentIds.toString());
+
+		}
+
+		// Create records in ticketconv-attachment table if ticket has attachments
+		if (attachmentIds != null && !attachmentIds.isEmpty() && ticketHistoryId != 0)
+			ticketHistoryDao.createTicketHistoryAttachment(attachmentIds, ticketHistoryId);
+
 		// Updating ticket's status
-		LOGGER.debug("Updating ticket: {} by the user: {}", ticket, ticket.getStatus(), user);
+		LOGGER.debug("Updating ticket: {} by the user: {}", ticket, user);
 		ticketDao.updateTicket(ticket, createdByMe, assignedToMe, managedByMe);
 		LOGGER.debug("ticket-status update successful.");
 

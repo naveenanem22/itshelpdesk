@@ -110,7 +110,7 @@ public class TicketController {
 			@RequestParam(required = false, name = "createdByMe") boolean createdByMe,
 			@RequestParam(required = false, name = "assignedToMe") boolean assignedToMe,
 			@RequestParam(required = false, name = "managedByMe") boolean managedByMe) {
-		// Setting ticketId
+		// Adding attachments
 		List<MultipartFile> files = new ArrayList<MultipartFile>();
 		if (file1 != null)
 			files.add(file1);
@@ -118,6 +118,8 @@ public class TicketController {
 			files.add(file2);
 		if (file3 != null)
 			files.add(file3);
+		
+		LOGGER.debug("Number of files received: {}", files.size());
 
 		TicketHistory ticketHistory = new TicketHistory();
 		ticketHistory.setAuthorName(userDetails.getUsername());
@@ -133,25 +135,25 @@ public class TicketController {
 		if (status != null)
 			ticket.setStatus(status);
 		ticket.setTicketHistoryList(ticketHistoryList);
-		
-		//Attaching assignedTo info
-		if(!assignedToUserName.isEmpty()) {
+
+		// Attaching assignedTo info
+		if (assignedToUserName != null) {
 			User assignedTo = new User();
 			assignedTo.setUserName(assignedToUserName);
 			ticket.setAssignedTo(assignedTo);
 		}
-		
-		//Attaching department info
-		if(!departmentName.isEmpty()) {
+
+		// Attaching department info
+		if (departmentName != null) {
 			Department department = new Department();
 			department.setName(departmentName);
 			ticket.setDepartment(department);
 		}
-		
-		//Attaching priority info
-		if(!priority.isEmpty())
+
+		// Attaching priority info
+		if (priority != null)
 			ticket.setPriority(priority);
-		
+
 		LOGGER.debug("Updating ticket: {} by the creator: {}", ticket, userDetails.getUsername());
 
 		LOGGER.debug("createdByMe: {}", createdByMe);
