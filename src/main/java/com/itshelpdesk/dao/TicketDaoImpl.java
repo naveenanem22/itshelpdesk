@@ -443,7 +443,7 @@ public class TicketDaoImpl implements TicketDao {
 		StringBuilder sql = new StringBuilder();
 		if (managedByMe) {
 			sql.append("UPDATE ticket SET tkt_updated_date =:tkt_updated_date ");
-			if (!ticket.getStatus().isEmpty())
+			if (ticket.getStatus() != null)
 				sql.append(", tkt_sts_id = (SELECT sts_id FROM status WHERE sts_name =:sts_name)");
 			if (ticket.getPriority() != null)
 				sql.append(", tkt_pty_id = (SELECT pty_id FROM priority WHERE pty_name =:pty_name)");
@@ -458,7 +458,7 @@ public class TicketDaoImpl implements TicketDao {
 
 		LOGGER.debug("Executing the SQL: {}", sql);
 		Map<String, Object> paramMap = new HashMap<String, Object>();
-		if (!ticket.getStatus().isEmpty())
+		if (ticket.getStatus() != null)
 			paramMap.put("sts_name", ticket.getStatus());
 		paramMap.put("tkt_updated_date", ticket.getUpdatedDate());
 		paramMap.put("tkt_id", ticket.getId());
