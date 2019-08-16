@@ -118,23 +118,30 @@ public class TicketController {
 			files.add(file2);
 		if (file3 != null)
 			files.add(file3);
-		
+
 		LOGGER.debug("Number of files received: {}", files.size());
-
-		TicketHistory ticketHistory = new TicketHistory();
-		ticketHistory.setAuthorName(userDetails.getUsername());
-		ticketHistory.setComment(comment);
-		ticketHistory.setCommentedDate(LocalDateTime.now());
-		ticketHistory.setFiles(files);
-
-		List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
-		ticketHistoryList.add(ticketHistory);
 
 		Ticket ticket = new Ticket();
 		ticket.setId(ticketId);
-		if (status != null)
+		
+		//Setting ticket-status only if present and not empty
+		if (status != null && !status.isEmpty())
 			ticket.setStatus(status);
-		ticket.setTicketHistoryList(ticketHistoryList);
+		
+		//Create ticket conversation along with attachments only if comment is present
+		if (comment != null && !comment.isEmpty()) {
+
+			TicketHistory ticketHistory = new TicketHistory();
+			ticketHistory.setAuthorName(userDetails.getUsername());
+			ticketHistory.setComment(comment);
+			ticketHistory.setCommentedDate(LocalDateTime.now());
+			ticketHistory.setFiles(files);
+
+			List<TicketHistory> ticketHistoryList = new ArrayList<TicketHistory>();
+			ticketHistoryList.add(ticketHistory);
+
+			ticket.setTicketHistoryList(ticketHistoryList);
+		}
 
 		// Attaching assignedTo info
 		if (assignedToUserName != null) {

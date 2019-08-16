@@ -238,7 +238,8 @@ public class TicketServiceImpl implements TicketService {
 		// Upload attachments only if it has attachment(s) to be uploaded
 		List<MultipartFile> files = new ArrayList<MultipartFile>();
 		List<String> fileNames = new ArrayList<String>();
-		files = ticket.getTicketHistoryList().get(0).getFiles();
+		if (ticket.getTicketHistoryList() != null)
+			files = ticket.getTicketHistoryList().get(0).getFiles();
 		if (files != null && !files.isEmpty()) {
 			LOGGER.debug("Saving attachments");
 			fileNames = fileStorageService.storeMultipleFile(files);
