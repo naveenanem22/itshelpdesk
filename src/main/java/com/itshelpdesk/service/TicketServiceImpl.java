@@ -331,6 +331,10 @@ public class TicketServiceImpl implements TicketService {
 	public Ticket getTicket(int ticketId) {
 		LOGGER.debug("Fetching ticket details with id: {}", ticketId);
 		Ticket ticket = ticketDao.getTicket(ticketId);
+		if (ticket.getAssignedTo() != null) {
+			User assignedTo = userService.getUserById(ticket.getAssignedTo().getId());
+			ticket.setAssignedTo(assignedTo);
+		}
 		LOGGER.debug("Fetched ticket details: {}", ticket);
 		return ticket;
 	}

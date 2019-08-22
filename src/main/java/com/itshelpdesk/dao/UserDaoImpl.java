@@ -32,14 +32,35 @@ public class UserDaoImpl implements UserDao {
 		LOGGER.debug("Fetching user for the given UserName: {}", userName);
 		StringBuilder sql = new StringBuilder();
 
-		//sql.append("SELECT * FROM user WHERE u_username = ?");
+		// sql.append("SELECT * FROM user WHERE u_username = ?");
 		sql.append("SELECT * FROM user ");
 		sql.append("INNER JOIN useremployee ON ue_u_id = u_id ");
 		sql.append("INNER JOIN employee ON emp_id = ue_emp_id ");
 		sql.append("WHERE u_username =?");
-		
 
 		User user = jdbcTemplate.queryForObject(sql.toString(), new Object[] { userName }, new UserRowMapper());
+
+		return user;
+	}
+
+	@Override
+	public User fetchUserById(int id) {
+		LOGGER.debug("Fetching user by the given id: {}", id);
+		StringBuilder sql = new StringBuilder();
+
+		sql.append("SELECT * FROM user ");
+		sql.append("INNER JOIN useremployee ON ue_u_id = u_id ");
+		sql.append("INNER JOIN employee ON ue_emp_id = emp_id ");
+		sql.append("WHERE u_id =:u_id");
+
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("u_id", id);
+
+		User user = namedParameterJdbcTemplate.queryForObject(sql.toString(), paramMap, new UserWithDetailsRowMapper());
+
+		// User user = jdbcTemplate.queryForObject(sql.toString(), new Object[] { new
+		// Integer(id) }, new UserWithDetailsRowMapper());
+		LOGGER.debug("Fetched user: {}", user);
 
 		return user;
 	}

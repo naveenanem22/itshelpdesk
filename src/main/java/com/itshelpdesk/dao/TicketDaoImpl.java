@@ -191,12 +191,13 @@ public class TicketDaoImpl implements TicketDao {
 
 			StringBuilder sql = new StringBuilder();
 			sql.append("SELECT ticket.*, department.dept_name, ");
-			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name FROM ticket ");
+			sql.append("priority.pty_name, status.sts_name, svctype_name, tkttype_name, tatu_assigned_to FROM ticket ");
 			sql.append("INNER JOIN priority ON tkt_pty_id = pty_id ");
 			sql.append("INNER JOIN status ON tkt_sts_id = sts_id ");
 			sql.append("INNER JOIN department ON tkt_dept_id = dept_id ");
 			sql.append("INNER JOIN servicetype ON tkt_svctype_id = svctype_id ");
 			sql.append("INNER JOIN tickettype ON tkt_tkttype_id = tkttype_id ");
+			sql.append("LEFT JOIN viewticketsassignedtouser ON tkt_id = tatu_tkt_id ");
 
 			sql.append("WHERE tkt_id = :tkt_id");
 
@@ -913,6 +914,12 @@ public class TicketDaoImpl implements TicketDao {
 			ticket.setTitle(rs.getString("tkt_title"));
 			ticket.setType(rs.getString("tkttype_name"));
 			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
+			
+			if (rs.getInt("tatu_assigned_to") != 0) {
+				User assignedTo = new User();
+				assignedTo.setId(rs.getInt("tatu_assigned_to"));
+				ticket.setAssignedTo(assignedTo);
+			}
 
 			return ticket;
 		}

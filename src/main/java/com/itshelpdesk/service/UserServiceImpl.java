@@ -42,4 +42,13 @@ public class UserServiceImpl implements UserService {
 		return users;
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public User getUserById(int id) {
+		LOGGER.debug("Fetching user with id: {}", id);
+		User user = userDao.fetchUserById(id);
+		LOGGER.debug("Fetched user: {}", user);
+		return user;
+	}
+
 }
