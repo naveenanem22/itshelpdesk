@@ -50,6 +50,11 @@ public class Ticket {
 	@JsonProperty("assignedTo")
 	private User assignedTo;
 
+	@JsonProperty(value = "assignedOn")
+	@JsonSerialize(using = JsonDateSerializer.class)
+	@JsonDeserialize(using = JsonDateDeserializer.class)
+	private LocalDateTime assignedOn;
+
 	@JsonProperty("ticketHistory")
 	private List<TicketHistory> ticketHistoryList;
 
@@ -71,6 +76,14 @@ public class Ticket {
 
 	public Ticket() {
 
+	}
+
+	public LocalDateTime getAssignedOn() {
+		return assignedOn;
+	}
+
+	public void setAssignedOn(LocalDateTime assignedOn) {
+		this.assignedOn = assignedOn;
 	}
 
 	public String getAdditionalInfo() {
@@ -214,9 +227,9 @@ public class Ticket {
 		return "Ticket [id=" + id + ", title=" + title + ", description=" + description + ", department=" + department
 				+ ", priority=" + priority + ", serviceCategory=" + serviceCategory + ", officeLocation="
 				+ officeLocation + ", deskNumber=" + deskNumber + ", type=" + type + ", additionalInfo="
-				+ additionalInfo + ", status=" + status + ", assignedTo=" + assignedTo + ", ticketHistoryList="
-				+ ticketHistoryList + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy + ", createdDate="
-				+ createdDate + ", updatedDate=" + updatedDate + "]";
+				+ additionalInfo + ", status=" + status + ", assignedTo=" + assignedTo + ", assignedOn=" + assignedOn
+				+ ", ticketHistoryList=" + ticketHistoryList + ", createdBy=" + createdBy + ", updatedBy=" + updatedBy
+				+ ", createdDate=" + createdDate + ", updatedDate=" + updatedDate + "]";
 	}
 
 }

@@ -774,7 +774,7 @@ public class TicketDaoImpl implements TicketDao {
 		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("ta_tkt_id", ticket.getId());
 		paramMap.put("ta_assigned_to", ticket.getAssignedTo().getId());
-		paramMap.put("ta_created_date", ticket.getCreatedDate());
+		paramMap.put("ta_created_date", ticket.getAssignedOn());
 
 		numberOfRowsAffected = namedParameterJdbcTemplate.update(sql.toString(), paramMap);
 		if (numberOfRowsAffected == 0 || numberOfRowsAffected > 1)

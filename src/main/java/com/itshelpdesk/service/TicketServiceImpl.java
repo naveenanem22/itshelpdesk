@@ -222,8 +222,9 @@ public class TicketServiceImpl implements TicketService {
 			User assignedTo = userService.getUserByUserName(ticket.getAssignedTo().getUserName());
 			LOGGER.debug("Fetched assignedTo user: {}", user);
 
-			// Updating the assignedTo field of the ticket
+			// Updating the assignedTo and assignedOn data field of the ticket
 			ticket.setAssignedTo(assignedTo);
+			ticket.setAssignedOn(LocalDateTime.now(ZoneOffset.UTC));
 
 			// Creating assignment record
 			ticketDao.createTicketAssignment(ticket);
