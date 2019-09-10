@@ -129,7 +129,7 @@ public class TicketDaoImpl implements TicketDao {
 			totalRowCountSql.append("WHERE sts_name=:sts_name");
 		if (createdByMe)
 			totalRowCountSql.append(" && tkt_created_by =:tkt_created_by");
-		if (isSearch && !searchText.isEmpty()) {
+		if (isSearch && searchText != null && !searchText.isEmpty()) {
 			if (searchFieldsList.contains(SearchField.TICKETID.getKey()))
 				totalRowCountSql.append(" && tkt_id LIKE :search_text");
 		}
@@ -160,7 +160,7 @@ public class TicketDaoImpl implements TicketDao {
 			sql.append("WHERE sts_name=:sts_name");
 		if (createdByMe)
 			sql.append(" && tkt_created_by =:tkt_created_by");
-		if (isSearch && !searchText.isEmpty()) {
+		if (isSearch && searchText != null && !searchText.isEmpty()) {
 			if (searchFieldsList.contains(SearchField.TICKETID.getKey()))
 				sql.append(" && tkt_id LIKE :search_text");
 		}

@@ -314,6 +314,7 @@ public class TicketServiceImpl implements TicketService {
 	public Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe, String sortBy, String sortOrder,
 			String status, int pageNumber, int pageSize, String priority, boolean isSearch, String searchText,
 			String searchFieldsListString) {
+		List<String> searchFieldsList = null;
 
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
@@ -325,8 +326,11 @@ public class TicketServiceImpl implements TicketService {
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
 		// convert searchFieldsListString into searchFieldsList by splitting
-		List<String> searchFieldsList = Arrays.asList(searchFieldsListString.split(Delimiter.COMMA.getKey()));
-		LOGGER.debug("searchFieldsList: {}", searchFieldsList);
+		if(searchFieldsListString != null && !searchFieldsListString.isEmpty()) {
+			searchFieldsList = Arrays.asList(searchFieldsListString.split(Delimiter.COMMA.getKey()));
+			LOGGER.debug("searchFieldsList: {}", searchFieldsList);
+		}
+		
 
 		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTickets(user.getId(), createdByMe, sortBy, sortOrder,
 				status, pageable, priority, isSearch, searchText, searchFieldsList);
