@@ -123,12 +123,12 @@ public class TicketController {
 
 		Ticket ticket = new Ticket();
 		ticket.setId(ticketId);
-		
-		//Setting ticket-status only if present and not empty
+
+		// Setting ticket-status only if present and not empty
 		if (status != null && !status.isEmpty())
 			ticket.setStatus(status);
-		
-		//Create ticket conversation along with attachments only if comment is present
+
+		// Create ticket conversation along with attachments only if comment is present
 		if (comment != null && !comment.isEmpty()) {
 
 			TicketHistory ticketHistory = new TicketHistory();
@@ -190,7 +190,10 @@ public class TicketController {
 			@RequestParam(required = false, name = "sortOrder") String sortOrder,
 			@RequestParam(required = false, name = "pageNumber") int pageNumber,
 			@RequestParam(required = false, name = "pageSize") int pageSize,
-			@RequestParam(required = false, name = "createdByMe") boolean createdByMe) {
+			@RequestParam(required = false, name = "createdByMe") boolean createdByMe,
+			@RequestParam(required = false, name = "isSearch") boolean isSearch,
+			@RequestParam(required = false, name = "searchText") String searchText,
+			@RequestParam(required = false, name = "searchFieldsListString") String searchFieldsListString) {
 		LOGGER.debug("Fetching tickets for the user with username: " + userDetails.getUsername());
 
 		// Setting empty fields for searching if they are not present in the request
@@ -202,9 +205,13 @@ public class TicketController {
 			priority = "";
 		else
 			LOGGER.debug("Search Criteria - priority: {}", priority);
+		LOGGER.debug("Search Text criteria -  isSearch: {}, searchText: {}, searchFieldsListString: {}", isSearch,
+				searchText, searchFieldsListString);
 
-		return new ResponseEntity<Page<Ticket>>(ticketService.getPaginatedTickets(userDetails.getUsername(),
-				createdByMe, sortBy, sortOrder, statusName, pageNumber, pageSize, priority), HttpStatus.OK);
+		return new ResponseEntity<Page<Ticket>>(
+				ticketService.getPaginatedTickets(userDetails.getUsername(), createdByMe, sortBy, sortOrder, statusName,
+						pageNumber, pageSize, priority, isSearch, searchText, searchFieldsListString),
+				HttpStatus.OK);
 	}
 
 	/********************** ticket-management URI END ***********************/

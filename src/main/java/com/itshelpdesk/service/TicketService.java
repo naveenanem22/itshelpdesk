@@ -29,7 +29,8 @@ public interface TicketService {
 	List<Ticket> getTickets(String status, String priority);
 
 	Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe, String sortBy, String sortOrder,
-			String status, int pageNumber, int pageSize, String priority);
+			String status, int pageNumber, int pageSize, String priority, boolean isSearch, String searchText,
+			String searchFieldsListString);
 
 	List<Ticket> getTicketsByAssignee(String userName, String status);
 

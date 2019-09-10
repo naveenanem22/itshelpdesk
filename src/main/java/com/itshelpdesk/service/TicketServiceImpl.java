@@ -3,6 +3,7 @@ package com.itshelpdesk.service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import com.itshelpdesk.dao.TicketDao;
 import com.itshelpdesk.dao.TicketHistoryAttachmentDao;
 import com.itshelpdesk.model.Ticket;
 import com.itshelpdesk.model.TicketHistory;
+import com.pc.constants.Delimiter;
 import com.pc.model.Attachment;
 import com.pc.model.User;
 import com.pc.services.FileStorageService;
@@ -310,7 +312,8 @@ public class TicketServiceImpl implements TicketService {
 
 	@Override
 	public Page<Ticket> getPaginatedTickets(String userName, boolean createdByMe, String sortBy, String sortOrder,
-			String status, int pageNumber, int pageSize, String priority) {
+			String status, int pageNumber, int pageSize, String priority, boolean isSearch, String searchText,
+			String searchFieldsListString) {
 
 		LOGGER.debug("Fetching user for the given userName: {}", userName);
 		User user = userService.getUserByUserName(userName);
@@ -321,8 +324,12 @@ public class TicketServiceImpl implements TicketService {
 		LOGGER.debug("Creating pageable object with pageNumber: {} and size: {}", pageNumber, pageSize);
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
+		// convert searchFieldsListString into searchFieldsList by splitting
+		List<String> searchFieldsList = Arrays.asList(searchFieldsListString.split(Delimiter.COMMA.getKey()));
+		LOGGER.debug("searchFieldsList: {}", searchFieldsList);
+
 		Page<Ticket> paginatedTickets = ticketDao.getPaginatedTickets(user.getId(), createdByMe, sortBy, sortOrder,
-				status, pageable, priority);
+				status, pageable, priority, isSearch, searchText, searchFieldsList);
 
 		LOGGER.debug("Tickets fetched: {}", paginatedTickets.toString());
 		return paginatedTickets;

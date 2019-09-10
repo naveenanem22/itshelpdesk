@@ -32,7 +32,8 @@ public interface TicketDao {
 			Pageable pageable);
 
 	Page<Ticket> getPaginatedTickets(int createdBy, boolean createdByMe, String sortBy, String sortOrder, String status,
-			Pageable pageable, String priority);
+			Pageable pageable, String priority, boolean isSearch, String searchText,
+			List<String> searchFieldsList);
 
 	/* Fetching operations END */
 

@@ -94,7 +94,8 @@ public class TicketDaoImpl implements TicketDao {
 
 	@Override
 	public Page<Ticket> getPaginatedTickets(int createdBy, boolean createdByMe, String sortBy, String sortOrder,
-			String status, Pageable pageable, String priority) {
+			String status, Pageable pageable, String priority, boolean isSearch, String searchText,
+			List<String> searchFieldsList) {
 		LOGGER.debug("Fetching tickets");
 
 		Map<String, Object> paramMap = new HashMap<String, Object>();
@@ -105,6 +106,7 @@ public class TicketDaoImpl implements TicketDao {
 		LOGGER.debug("paramMap: {}", paramMap.toString());
 
 		paramMap.put("tkt_created_by", createdBy);
+		paramMap.put("search_text", searchText);
 
 		/* Fetching totalRowCount for the purpose of paginating */
 		int totalRowCount;
@@ -127,6 +129,10 @@ public class TicketDaoImpl implements TicketDao {
 			totalRowCountSql.append("WHERE sts_name=:sts_name");
 		if (createdByMe)
 			totalRowCountSql.append(" && tkt_created_by =:tkt_created_by");
+		if (isSearch && !searchText.isEmpty()) {
+			if (searchFieldsList.contains(SearchField.TICKETID.getKey()))
+				totalRowCountSql.append(" && tkt_id LIKE :search_text");
+		}
 
 		LOGGER.debug("Fetching the tickets count using query: {}", totalRowCountSql.toString());
 		totalRowCount = namedParameterJdbcTemplate.queryForObject(totalRowCountSql.toString(), paramMap, Integer.class)
@@ -154,6 +160,10 @@ public class TicketDaoImpl implements TicketDao {
 			sql.append("WHERE sts_name=:sts_name");
 		if (createdByMe)
 			sql.append(" && tkt_created_by =:tkt_created_by");
+		if (isSearch && !searchText.isEmpty()) {
+			if (searchFieldsList.contains(SearchField.TICKETID.getKey()))
+				sql.append(" && tkt_id LIKE :search_text");
+		}
 		if (sortBy != null && !(sortBy.isEmpty()) && SortColumn.contains(sortBy)
 				&& SortColumn.TICKETID.getKey().equalsIgnoreCase(sortBy))
 			sql.append(" ORDER BY tkt_id");
@@ -173,6 +183,7 @@ public class TicketDaoImpl implements TicketDao {
 		if (sortOrder != null && !(sortOrder.isEmpty()) && SortOrder.contains(sortOrder)
 				&& SortOrder.DESCENDING.getKey().equalsIgnoreCase(sortOrder))
 			sql.append(" DESC");
+
 		sql.append(" LIMIT :limit");
 		sql.append(" OFFSET :offset");
 
@@ -914,7 +925,7 @@ public class TicketDaoImpl implements TicketDao {
 			ticket.setTitle(rs.getString("tkt_title"));
 			ticket.setType(rs.getString("tkttype_name"));
 			ticket.setUpdatedDate(rs.getTimestamp("tkt_updated_date").toLocalDateTime());
-			
+
 			if (rs.getInt("tatu_assigned_to") != 0) {
 				User assignedTo = new User();
 				assignedTo.setId(rs.getInt("tatu_assigned_to"));
@@ -1038,6 +1049,29 @@ enum SortColumn {
 	public static boolean contains(String sortBy) {
 		List<SortColumn> matchedColumns = Stream.of(SortColumn.values()).filter(item -> {
 			return item.getKey().equalsIgnoreCase(sortBy);
+		}).collect(Collectors.toList());
+
+		return !matchedColumns.isEmpty();
+	}
+
+}
+
+enum SearchField {
+	TICKETID("ticketId"), TICKETTITLE("ticketTitle"), TICKETSTATUS("ticketStatus");
+
+	private final String key;
+
+	SearchField(String key) {
+		this.key = key;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public static boolean contains(String searchField) {
+		List<SearchField> matchedColumns = Stream.of(SearchField.values()).filter(item -> {
+			return item.getKey().equalsIgnoreCase(searchField);
 		}).collect(Collectors.toList());
 
 		return !matchedColumns.isEmpty();
